@@ -9,23 +9,52 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
     <style>
+        /* ══════════════════════════════════════════════
+           RESET & ROOT
+        ══════════════════════════════════════════════ */
         *, *::before, *::after {
             margin: 0; padding: 0; box-sizing: border-box;
         }
 
         :root {
-            --black: #000000;
-            --void: #010409;
-            --navy-1: #020d1f;
-            --blue-dark: #0030aa;
-            --blue: #007bff;
+            /* Colors */
+            --black:      #000000;
+            --void:       #010409;
+            --navy-1:     #020d1f;
+            --blue-dark:  #0030aa;
+            --blue:       #007bff;
             --blue-light: #00b4ff;
-            --cyan: #00fff5;
-            --text-1: #cce4fa;
-            --text-2: rgba(150,190,230,0.55);
-            --glass: rgba(2,12,28,0.88);
-            --touch-min: 44px;
-            --radius: 12px;
+            --cyan:       #00fff5;
+            --text-1:     #cce4fa;
+            --text-2:     rgba(150,190,230,0.55);
+            --glass:      rgba(2,12,28,0.88);
+
+            /* Layout */
+            --radius:     12px;
+            --radius-lg:  20px;
+
+            /* Touch targets — fluid between 44px (mobile) and 48px (desktop) */
+            --touch:      clamp(44px, 5vw, 48px);
+
+            /* Spacing scale */
+            --sp-xs:  clamp(6px,  1.2vw,  8px);
+            --sp-sm:  clamp(10px, 2vw,   14px);
+            --sp-md:  clamp(14px, 2.5vw, 20px);
+            --sp-lg:  clamp(20px, 4vw,   32px);
+            --sp-xl:  clamp(28px, 5vw,   40px);
+
+            /* Font scale */
+            --fs-xs:  clamp(0.52rem, 1.4vw, 0.62rem);
+            --fs-sm:  clamp(0.62rem, 1.6vw, 0.72rem);
+            --fs-md:  clamp(0.72rem, 2vw,   0.88rem);
+            --fs-lg:  clamp(0.82rem, 2.4vw, 1rem);
+            --fs-xl:  clamp(0.9rem,  3vw,   1.1rem);
+
+            /* Safe areas */
+            --safe-t: env(safe-area-inset-top,    0px);
+            --safe-r: env(safe-area-inset-right,  0px);
+            --safe-b: env(safe-area-inset-bottom, 0px);
+            --safe-l: env(safe-area-inset-left,   0px);
         }
 
         html, body {
@@ -33,15 +62,22 @@
             overflow: hidden;
             background: #000;
             font-family: 'Crimson Text', serif;
+            -webkit-text-size-adjust: 100%;
+            touch-action: manipulation;
         }
 
+        /* ══════════════════════════════════════════════
+           A-FRAME / VIDEO
+        ══════════════════════════════════════════════ */
         a-scene { z-index: 0; }
         #arjs-video, a-scene video {
             object-fit: cover !important;
             top: 0 !important; left: 0 !important;
         }
 
-        /* ── UNDERWATER BACKGROUND ── */
+        /* ══════════════════════════════════════════════
+           UNDERWATER BACKGROUND
+        ══════════════════════════════════════════════ */
         #uw-bg {
             position: fixed; inset: 0; z-index: -1; overflow: hidden;
             background: linear-gradient(180deg,
@@ -144,13 +180,32 @@
             background: radial-gradient(ellipse at 50% 40%, transparent 30%, rgba(0,2,8,0.72) 100%);
         }
 
-        /* ── LOADING SCREEN ── */
+        /* ══════════════════════════════════════════════
+           TOP LINE
+        ══════════════════════════════════════════════ */
+        .top-line {
+            position: fixed; top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg,
+                transparent, var(--blue-dark), var(--blue),
+                var(--cyan), var(--blue), var(--blue-dark), transparent);
+            background-size: 200% 100%;
+            animation: line-sweep 4s linear infinite;
+            z-index: 999;
+        }
+        @keyframes line-sweep {
+            0%   { background-position: 100% 0; }
+            100% { background-position: -100% 0; }
+        }
+
+        /* ══════════════════════════════════════════════
+           LOADING SCREEN
+        ══════════════════════════════════════════════ */
         #ar-loading {
             display: none;
             position: fixed; inset: 0; z-index: 190;
             background: rgba(0,2,10,0.97);
             align-items: center; justify-content: center;
-            flex-direction: column; gap: 20px;
+            flex-direction: column; gap: var(--sp-md);
         }
         #ar-loading.show { display: flex; }
         .loading-spinner {
@@ -163,37 +218,52 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .loading-text {
             font-family: 'Cinzel', serif;
-            font-size: 0.7rem; letter-spacing: 4px;
+            font-size: var(--fs-xs); letter-spacing: 4px;
             text-transform: uppercase; color: var(--text-2);
         }
 
-        /* ── GUIDE MODAL ── */
+        /* ══════════════════════════════════════════════
+           GUIDE MODAL
+        ══════════════════════════════════════════════ */
         #guide-modal {
             position: fixed; inset: 0; z-index: 200;
             background: rgba(0,2,10,0.97);
             display: flex; align-items: center; justify-content: center;
-            padding: 20px; backdrop-filter: blur(8px);
+            padding: max(var(--sp-md), var(--safe-t))
+                     max(var(--sp-md), var(--safe-r))
+                     max(var(--sp-md), var(--safe-b))
+                     max(var(--sp-md), var(--safe-l));
+            backdrop-filter: blur(8px);
             overflow-y: auto; overscroll-behavior: contain;
         }
         #guide-modal.hidden { display: none; }
 
         .guide-box {
             max-width: 480px; width: 100%;
-            border: 1px solid rgba(0,120,255,0.2); border-radius: 20px;
+            border: 1px solid rgba(0,120,255,0.2);
+            border-radius: var(--radius-lg);
             background: rgba(2,12,30,0.97);
-            padding: clamp(24px,5vw,36px) clamp(20px,4vw,32px);
+            padding: var(--sp-lg) var(--sp-md);
             text-align: center;
-            max-height: calc(100dvh - 40px); overflow-y: auto;
+            max-height: calc(100dvh - 2 * var(--sp-md));
+            overflow-y: auto;
             position: relative;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0,100,255,0.3) transparent;
         }
+        .guide-box::-webkit-scrollbar { width: 4px; }
+        .guide-box::-webkit-scrollbar-track { background: transparent; }
+        .guide-box::-webkit-scrollbar-thumb { background: rgba(0,100,255,0.3); border-radius: 2px; }
+
+        /* Close button */
         #btn-close-guide {
-            position: absolute; top: 14px; right: 14px;
+            position: absolute; top: 12px; right: 12px;
             width: 32px; height: 32px; border-radius: 50%;
             border: 1px solid rgba(0,100,255,0.25);
             background: rgba(0,10,40,0.7);
             color: var(--text-2); font-size: 0.8rem;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: all 0.25s; line-height: 1;
+            transition: all 0.25s; flex-shrink: 0;
         }
         #btn-close-guide:hover, #btn-close-guide:focus-visible {
             background: rgba(0,40,120,0.6);
@@ -202,23 +272,86 @@
             box-shadow: 0 0 12px rgba(0,200,255,0.15);
         }
         #guide-modal:not(.closeable) #btn-close-guide { display: none; }
+
+        /* Heading & intro */
         .guide-box h2 {
             font-family: 'Cinzel', serif;
-            font-size: clamp(0.9rem,3vw,1.1rem); font-weight: 900;
+            font-size: var(--fs-xl); font-weight: 900;
             letter-spacing: 5px; text-transform: uppercase;
-            color: var(--blue-light); margin-bottom: 8px;
+            color: var(--blue-light); margin-bottom: var(--sp-xs);
         }
         .guide-box > p {
             font-style: italic; color: var(--text-2);
-            font-size: clamp(0.82rem,2.5vw,0.92rem);
-            margin-bottom: 24px; line-height: 1.8;
+            font-size: var(--fs-md);
+            margin-bottom: var(--sp-md); line-height: 1.8;
         }
-        .guide-steps { text-align: left; margin-bottom: 24px; }
+
+        /* Download marker section */
+        .marker-dl-section-title {
+            font-family: 'Cinzel', serif;
+            font-size: var(--fs-xs);
+            letter-spacing: 3px; text-transform: uppercase;
+            color: var(--text-2);
+            margin-bottom: var(--sp-xs);
+            text-align: left;
+        }
+        .marker-downloads {
+            display: flex; flex-direction: column;
+            gap: var(--sp-xs);
+            margin-bottom: var(--sp-md);
+        }
+        .marker-dl-btn {
+            display: flex; align-items: center;
+            justify-content: space-between; gap: var(--sp-sm);
+            padding: var(--sp-sm) var(--sp-md);
+            border-radius: var(--radius);
+            border: 1px solid rgba(0,120,255,0.25);
+            background: rgba(0,20,70,0.5);
+            color: var(--text-1);
+            text-decoration: none;
+            font-family: 'Cinzel', serif;
+            font-size: var(--fs-xs); font-weight: 600;
+            letter-spacing: 2px; text-transform: uppercase;
+            transition: all 0.3s;
+            min-height: var(--touch);
+        }
+        .marker-dl-btn:hover, .marker-dl-btn:focus-visible {
+            border-color: rgba(0,200,255,0.45);
+            background: rgba(0,40,120,0.5);
+            color: var(--cyan);
+            box-shadow: 0 0 16px rgba(0,180,255,0.12);
+            transform: translateY(-1px);
+        }
+        .marker-dl-btn:active { transform: translateY(0); }
+        .marker-dl-left { display: flex; align-items: center; gap: var(--sp-sm); }
+        .marker-dl-btn .fa-fish-fins {
+            font-size: 1rem; color: var(--blue-light);
+            flex-shrink: 0; transition: color 0.3s;
+        }
+        .marker-dl-btn:hover .fa-fish-fins { color: var(--cyan); }
+        .marker-dl-btn .fa-download {
+            font-size: 0.8rem; color: var(--text-2);
+            flex-shrink: 0; transition: color 0.3s;
+        }
+        .marker-dl-btn:hover .fa-download { color: var(--cyan); }
+        .marker-dl-label {
+            display: flex; flex-direction: column; gap: 2px; text-align: left;
+        }
+        .marker-dl-name { color: var(--text-1); transition: color 0.3s; }
+        .marker-dl-btn:hover .marker-dl-name { color: var(--cyan); }
+        .marker-dl-hint {
+            font-family: 'Crimson Text', serif;
+            font-style: italic; font-size: var(--fs-sm);
+            color: var(--text-2); letter-spacing: 0;
+            text-transform: none; font-weight: 400;
+        }
+
+        /* Steps */
+        .guide-steps { text-align: left; margin-bottom: var(--sp-md); }
         .guide-step {
-            display: flex; gap: 12px; align-items: flex-start;
-            margin-bottom: 12px;
-            font-size: clamp(0.8rem,2.2vw,0.88rem);
-            color: var(--text-2); line-height: 1.6;
+            display: flex; gap: var(--sp-sm); align-items: flex-start;
+            margin-bottom: var(--sp-sm);
+            font-size: var(--fs-md); color: var(--text-2); line-height: 1.6;
         }
         .guide-step-num {
             width: 24px; height: 24px; border-radius: 50%;
@@ -228,34 +361,29 @@
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0; margin-top: 2px;
         }
+
+        /* Start button */
         #btn-start-ar {
-            width: 100%; padding: 18px; border-radius: var(--radius);
-            border: none; background: linear-gradient(135deg, var(--blue-dark), var(--blue));
+            width: 100%; padding: var(--sp-md);
+            border-radius: var(--radius); border: none;
+            background: linear-gradient(135deg, var(--blue-dark), var(--blue));
             color: #fff; font-family: 'Cinzel', serif;
-            font-size: clamp(0.7rem,2.5vw,0.76rem); font-weight: 700;
+            font-size: var(--fs-sm); font-weight: 700;
             letter-spacing: 4px; text-transform: uppercase;
             cursor: pointer; transition: all 0.3s;
             box-shadow: 0 4px 32px rgba(0,90,255,0.25);
-            min-height: var(--touch-min);
+            min-height: var(--touch);
         }
         #btn-start-ar:hover, #btn-start-ar:focus-visible {
             transform: translateY(-2px);
             box-shadow: 0 8px 40px rgba(0,120,255,0.35);
         }
-        #btn-start-ar:active { transform: translateY(0); }
+        #btn-start-ar:active  { transform: translateY(0); }
         #btn-start-ar:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-        /* ── TOP LINE ── */
-        .top-line {
-            position: fixed; top: 0; left: 0; width: 100%; height: 2px;
-            background: linear-gradient(90deg, transparent, var(--blue-dark), var(--blue), var(--cyan), var(--blue), var(--blue-dark), transparent);
-            background-size: 200% 100%;
-            animation: line-sweep 4s linear infinite;
-            z-index: 999;
-        }
-        @keyframes line-sweep { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
-
-        /* ── AR OVERLAY ── */
+        /* ══════════════════════════════════════════════
+           AR OVERLAY
+        ══════════════════════════════════════════════ */
         #ar-overlay {
             position: fixed; inset: 0; z-index: 100;
             pointer-events: none; display: flex; flex-direction: column;
@@ -263,24 +391,28 @@
         #ar-topbar {
             pointer-events: all;
             display: flex; align-items: center; justify-content: space-between;
-            padding: clamp(12px,2.5vw,16px) clamp(14px,3vw,20px);
+            padding: max(var(--sp-sm), var(--safe-t)) max(var(--sp-md), var(--safe-r))
+                     var(--sp-sm)                      max(var(--sp-md), var(--safe-l));
             background: linear-gradient(180deg, rgba(0,3,15,0.92) 0%, transparent 100%);
-            backdrop-filter: blur(8px); gap: 12px;
+            backdrop-filter: blur(8px); gap: var(--sp-sm);
+            flex-wrap: nowrap;
         }
         .ar-logo {
             font-family: 'Cinzel', serif;
-            font-size: clamp(0.6rem,1.8vw,0.78rem); font-weight: 900;
+            font-size: var(--fs-sm); font-weight: 900;
             color: var(--blue-light); letter-spacing: 5px; text-transform: uppercase;
             text-shadow: 0 0 20px rgba(0,180,255,0.5);
-            display: flex; align-items: center; gap: 8px;
-            text-decoration: none; min-height: var(--touch-min); flex-shrink: 0;
+            display: flex; align-items: center; gap: var(--sp-xs);
+            text-decoration: none; min-height: var(--touch); flex-shrink: 0;
+            white-space: nowrap;
         }
         .ar-badge {
             display: flex; align-items: center; gap: 8px;
             padding: 6px 14px; border-radius: 50px;
             border: 1px solid rgba(0,200,255,0.3); background: rgba(0,20,80,0.4);
-            font-size: 0.6rem; font-weight: 700; color: var(--cyan);
+            font-size: var(--fs-xs); font-weight: 700; color: var(--cyan);
             letter-spacing: 3px; text-transform: uppercase; white-space: nowrap;
+            flex-shrink: 0;
         }
         .ar-badge .live-dot {
             width: 5px; height: 5px; border-radius: 50%;
@@ -291,12 +423,12 @@
         #btn-back {
             background: rgba(0,20,80,0.5); border: 1px solid rgba(0,100,255,0.25);
             color: var(--blue-light); font-family: 'Cinzel', serif;
-            font-size: clamp(0.6rem,1.8vw,0.7rem); font-weight: 600;
+            font-size: var(--fs-xs); font-weight: 600;
             letter-spacing: 2px; text-transform: uppercase;
-            padding: 10px 16px; border-radius: var(--radius);
-            cursor: pointer; display: flex; align-items: center; gap: 8px;
+            padding: var(--sp-xs) var(--sp-sm); border-radius: var(--radius);
+            cursor: pointer; display: flex; align-items: center; gap: var(--sp-xs);
             transition: all 0.3s; backdrop-filter: blur(4px);
-            text-decoration: none; min-height: var(--touch-min);
+            text-decoration: none; min-height: var(--touch);
             white-space: nowrap; flex-shrink: 0;
         }
         #btn-back:hover, #btn-back:focus-visible {
@@ -304,15 +436,18 @@
             border-color: rgba(0,180,255,0.4); color: var(--cyan);
         }
 
-        /* ── SCANNING FRAME ── */
+        /* ══════════════════════════════════════════════
+           SCAN FRAME
+        ══════════════════════════════════════════════ */
         #scan-frame {
             position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            width: min(280px, 70vw, 70vh); height: min(280px, 70vw, 70vh);
+            width:  min(260px, 65vw, 55vh);
+            height: min(260px, 65vw, 55vh);
             pointer-events: none; z-index: 101; transition: opacity 0.5s;
         }
         #scan-frame .corner {
-            position: absolute; width: 26px; height: 26px;
+            position: absolute; width: 24px; height: 24px;
             border-color: var(--cyan); border-style: solid; opacity: 0.8;
         }
         #scan-frame .corner.tl { top: 0; left: 0; border-width: 2px 0 0 2px; border-radius: 4px 0 0 0; }
@@ -332,110 +467,114 @@
             100% { top: 100%; opacity: 0; }
         }
 
-        /* ── HINT PANEL ── */
+        /* ══════════════════════════════════════════════
+           HINT PANEL
+        ══════════════════════════════════════════════ */
         #hint-panel {
             position: fixed; bottom: 0; left: 0; right: 0;
-            padding: 0 clamp(12px,3vw,20px) clamp(20px,5vh,32px);
+            padding: 0
+                     max(var(--sp-md), var(--safe-r))
+                     max(var(--sp-lg), var(--safe-b))
+                     max(var(--sp-md), var(--safe-l));
             background: linear-gradient(0deg, rgba(0,3,15,0.95) 0%, transparent 100%);
             backdrop-filter: blur(4px); z-index: 101; pointer-events: none;
         }
         #hint-text {
             text-align: center; font-family: 'Cinzel', serif;
-            font-size: clamp(0.6rem,2vw,0.72rem); font-weight: 600;
+            font-size: var(--fs-xs); font-weight: 600;
             color: var(--text-2); letter-spacing: 3px; text-transform: uppercase;
-            margin-bottom: 14px; transition: color 0.5s;
+            margin-bottom: var(--sp-sm); transition: color 0.5s;
         }
         #hint-text.found {
             color: var(--cyan); text-shadow: 0 0 20px rgba(0,255,245,0.3);
         }
         #marker-strip {
-            display: flex; justify-content: center; gap: 10px;
+            display: flex; justify-content: center; gap: var(--sp-xs);
             pointer-events: all; flex-wrap: wrap;
         }
         .marker-btn {
-            display: flex; flex-direction: column; align-items: center; gap: 5px;
-            padding: clamp(10px,2vw,12px) clamp(12px,2.5vw,16px);
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            padding: var(--sp-xs) var(--sp-sm);
             border-radius: 10px; border: 1px solid rgba(0,100,255,0.2);
             background: rgba(0,10,40,0.7); cursor: pointer; transition: all 0.3s;
             color: var(--text-2); font-family: 'Cinzel', serif;
-            font-size: 0.52rem; letter-spacing: 1.5px; text-transform: uppercase;
-            min-height: var(--touch-min); min-width: var(--touch-min);
+            font-size: var(--fs-xs); letter-spacing: 1.5px; text-transform: uppercase;
+            min-height: var(--touch); min-width: var(--touch);
         }
         .marker-btn.active {
             border-color: rgba(0,200,255,0.5); background: rgba(0,40,120,0.5);
             color: var(--cyan); box-shadow: 0 0 16px rgba(0,200,255,0.1);
         }
-        .marker-btn i { font-size: 1rem; }
+        .marker-btn i { font-size: clamp(0.85rem, 2.5vw, 1rem); }
 
-        /* ── OBJECT INFO TOAST ── */
+        /* ══════════════════════════════════════════════
+           OBJECT INFO TOAST
+        ══════════════════════════════════════════════ */
         #obj-toast {
-            position: fixed; top: clamp(72px,12vh,90px); left: 50%;
+            position: fixed;
+            top: clamp(64px, 10vh, 90px);
+            left: 50%;
             transform: translateX(-50%) translateY(-20px);
-            background: var(--glass); border: 1px solid rgba(0,180,255,0.2);
-            border-radius: 14px; padding: 12px clamp(16px,4vw,22px);
+            background: var(--glass);
+            border: 1px solid rgba(0,180,255,0.2);
+            border-radius: 14px;
+            padding: var(--sp-sm) var(--sp-md);
             z-index: 102; text-align: center; backdrop-filter: blur(16px);
             opacity: 0; transition: all 0.4s; pointer-events: none;
             max-width: calc(100vw - 32px);
+            width: max-content;
         }
         #obj-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
         #obj-toast .toast-title {
-            font-family: 'Cinzel', serif; font-size: clamp(0.65rem,2.5vw,0.78rem);
+            font-family: 'Cinzel', serif; font-size: var(--fs-sm);
             font-weight: 700; color: var(--cyan); letter-spacing: 3px;
             text-transform: uppercase; margin-bottom: 4px;
         }
         #obj-toast .toast-sub {
-            font-style: italic; font-size: clamp(0.75rem,2.5vw,0.82rem); color: var(--text-2);
+            font-style: italic; font-size: var(--fs-md); color: var(--text-2);
         }
 
-        /* ── TOGGLE FISH BUTTON ── */
+        /* ══════════════════════════════════════════════
+           TOGGLE FISH BUTTON
+        ══════════════════════════════════════════════ */
         #btn-toggle-fish {
             display: none;
             position: fixed;
-            bottom: clamp(110px, 22vh, 140px);
+            bottom: max(clamp(100px, 20vh, 130px), calc(var(--safe-b) + 100px));
             left: 50%;
             transform: translateX(-50%);
             z-index: 102;
             pointer-events: all;
-            padding: 14px 28px;
+            padding: var(--sp-sm) var(--sp-lg);
             border-radius: 50px;
             border: 1.5px solid rgba(0,200,255,0.45);
             background: rgba(0,10,40,0.82);
             backdrop-filter: blur(12px);
             color: var(--cyan);
             font-family: 'Cinzel', serif;
-            font-size: clamp(0.62rem, 2vw, 0.72rem);
-            font-weight: 700;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.3s;
+            font-size: var(--fs-xs); font-weight: 700;
+            letter-spacing: 3px; text-transform: uppercase;
+            cursor: pointer; transition: all 0.3s;
             box-shadow: 0 0 20px rgba(0,200,255,0.1), inset 0 0 12px rgba(0,150,255,0.05);
-            white-space: nowrap;
-            gap: 8px;
-            align-items: center;
+            white-space: nowrap; gap: 8px; align-items: center;
         }
-        #btn-toggle-fish.visible {
-            display: flex;
-        }
+        #btn-toggle-fish.visible { display: flex; }
         #btn-toggle-fish:hover, #btn-toggle-fish:focus-visible {
             background: rgba(0,40,120,0.7);
             border-color: var(--cyan);
             box-shadow: 0 0 32px rgba(0,200,255,0.25), inset 0 0 16px rgba(0,180,255,0.08);
             transform: translateX(-50%) translateY(-2px);
         }
-        #btn-toggle-fish:active {
-            transform: translateX(-50%) translateY(0);
-        }
+        #btn-toggle-fish:active { transform: translateX(-50%) translateY(0); }
         #btn-toggle-fish.visible::before {
             content: '';
-            position: absolute;
-            inset: -4px;
+            position: absolute; inset: -4px;
             border-radius: 50px;
             border: 1.5px solid rgba(0,200,255,0.3);
             animation: pulse-ring 2s ease-out infinite;
         }
         @keyframes pulse-ring {
-            0%   { transform: scale(1);   opacity: 0.6; }
+            0%   { transform: scale(1);    opacity: 0.6; }
             100% { transform: scale(1.12); opacity: 0; }
         }
         #btn-toggle-fish .btn-icon { transition: transform 0.3s; }
@@ -443,22 +582,26 @@
             animation: icon-spin 0.4s ease;
         }
         @keyframes icon-spin {
-            0%   { transform: rotate(0deg) scale(1); }
+            0%   { transform: rotate(0deg)   scale(1); }
             50%  { transform: rotate(180deg) scale(0.6); }
             100% { transform: rotate(360deg) scale(1); }
         }
 
-        /* ── CONTROLS ── */
+        /* ══════════════════════════════════════════════
+           CONTROLS
+        ══════════════════════════════════════════════ */
         #controls {
-            position: fixed; right: clamp(10px,2.5vw,16px); top: 50%;
-            transform: translateY(-50%); display: flex; flex-direction: column;
-            gap: 10px; z-index: 101; pointer-events: all;
+            position: fixed;
+            right: max(var(--sp-sm), var(--safe-r));
+            top: 50%; transform: translateY(-50%);
+            display: flex; flex-direction: column;
+            gap: var(--sp-xs); z-index: 101; pointer-events: all;
         }
         .ctrl-btn {
-            width: var(--touch-min); height: var(--touch-min);
+            width:  var(--touch); height: var(--touch);
             border-radius: 10px; border: 1px solid rgba(0,100,255,0.25);
             background: rgba(0,10,40,0.7); color: var(--blue-light);
-            font-size: 1rem; cursor: pointer;
+            font-size: clamp(0.85rem, 2vw, 1rem); cursor: pointer;
             display: flex; align-items: center; justify-content: center;
             transition: all 0.3s; backdrop-filter: blur(8px);
         }
@@ -467,137 +610,182 @@
             color: var(--cyan); box-shadow: 0 0 16px rgba(0,180,255,0.15);
         }
 
-        /* ── CAMERA ERROR ── */
+        /* ══════════════════════════════════════════════
+           CAMERA ERROR
+        ══════════════════════════════════════════════ */
         #camera-error {
             display: none; position: fixed; inset: 0; z-index: 150;
             background: rgba(0,2,10,0.97);
-            align-items: center; justify-content: center; padding: 24px;
+            align-items: center; justify-content: center;
+            padding: max(var(--sp-md), var(--safe-t))
+                     max(var(--sp-md), var(--safe-r))
+                     max(var(--sp-md), var(--safe-b))
+                     max(var(--sp-md), var(--safe-l));
         }
         #camera-error.show { display: flex; }
         .error-box {
             max-width: 360px; width: 100%; text-align: center;
-            border: 1px solid rgba(255,60,60,0.2); border-radius: 20px;
-            background: rgba(2,12,30,0.97); padding: 36px 28px;
+            border: 1px solid rgba(255,60,60,0.2); border-radius: var(--radius-lg);
+            background: rgba(2,12,30,0.97); padding: var(--sp-xl) var(--sp-lg);
         }
-        .error-icon { font-size: 2.5rem; color: rgba(255,100,100,0.6); margin-bottom: 20px; }
+        .error-icon { font-size: 2.5rem; color: rgba(255,100,100,0.6); margin-bottom: var(--sp-md); }
         .error-title {
-            font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 700;
-            color: var(--text-1); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px;
+            font-family: 'Cinzel', serif; font-size: var(--fs-lg); font-weight: 700;
+            color: var(--text-1); letter-spacing: 3px; text-transform: uppercase;
+            margin-bottom: var(--sp-sm);
         }
         .error-msg {
-            font-style: italic; color: var(--text-2); font-size: 0.9rem;
-            margin-bottom: 24px; line-height: 1.8;
+            font-style: italic; color: var(--text-2); font-size: var(--fs-md);
+            margin-bottom: var(--sp-md); line-height: 1.8;
         }
-        .error-actions { display: flex; flex-direction: column; gap: 10px; }
+        .error-actions { display: flex; flex-direction: column; gap: var(--sp-xs); }
         .btn-retry {
-            padding: 14px 24px; border-radius: var(--radius); border: none;
+            padding: var(--sp-sm) var(--sp-md); border-radius: var(--radius); border: none;
             background: linear-gradient(135deg, var(--blue-dark), var(--blue));
-            color: #fff; font-family: 'Cinzel', serif; font-size: 0.7rem;
+            color: #fff; font-family: 'Cinzel', serif; font-size: var(--fs-xs);
             font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
-            cursor: pointer; transition: all 0.3s; min-height: var(--touch-min);
+            cursor: pointer; transition: all 0.3s; min-height: var(--touch);
         }
         .btn-retry:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,90,255,0.3); }
         .btn-back-home {
-            padding: 12px 24px; border-radius: var(--radius);
+            padding: var(--sp-xs) var(--sp-md); border-radius: var(--radius);
             border: 1px solid rgba(0,100,255,0.2); background: transparent;
             color: var(--blue-light); font-family: 'Cinzel', serif;
-            font-size: 0.7rem; font-weight: 600; letter-spacing: 2px;
+            font-size: var(--fs-xs); font-weight: 600; letter-spacing: 2px;
             text-transform: uppercase; cursor: pointer; text-decoration: none;
             display: flex; align-items: center; justify-content: center;
-            gap: 8px; min-height: var(--touch-min); transition: all 0.3s;
+            gap: var(--sp-xs); min-height: var(--touch); transition: all 0.3s;
         }
         .btn-back-home:hover { border-color: rgba(0,200,255,0.4); color: var(--cyan); }
 
-        /* ── MARKER DOWNLOADS ── */
-.marker-downloads {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 24px;
-}
-.marker-dl-btn {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 12px 16px;
-    border-radius: var(--radius);
-    border: 1px solid rgba(0,120,255,0.25);
-    background: rgba(0,20,70,0.5);
-    color: var(--text-1);
-    text-decoration: none;
-    font-family: 'Cinzel', serif;
-    font-size: clamp(0.62rem, 2vw, 0.7rem);
-    font-weight: 600;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    transition: all 0.3s;
-    min-height: var(--touch-min);
-}
-.marker-dl-btn:hover, .marker-dl-btn:focus-visible {
-    border-color: rgba(0,200,255,0.45);
-    background: rgba(0,40,120,0.5);
-    color: var(--cyan);
-    box-shadow: 0 0 16px rgba(0,180,255,0.12);
-    transform: translateY(-1px);
-}
-.marker-dl-btn:active {
-    transform: translateY(0);
-}
-.marker-dl-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-.marker-dl-btn i.fa-fish-fins {
-    font-size: 1rem;
-    color: var(--blue-light);
-    flex-shrink: 0;
-    transition: color 0.3s;
-}
-.marker-dl-btn:hover i.fa-fish-fins {
-    color: var(--cyan);
-}
-.marker-dl-btn i.fa-download {
-    font-size: 0.8rem;
-    color: var(--text-2);
-    flex-shrink: 0;
-    transition: color 0.3s;
-}
-.marker-dl-btn:hover i.fa-download {
-    color: var(--cyan);
-}
-.marker-dl-label {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    text-align: left;
-}
-.marker-dl-name {
-    color: var(--text-1);
-    transition: color 0.3s;
-}
-.marker-dl-btn:hover .marker-dl-name {
-    color: var(--cyan);
-}
-.marker-dl-hint {
-    font-family: 'Crimson Text', serif;
-    font-style: italic;
-    font-size: 0.75rem;
-    color: var(--text-2);
-    letter-spacing: 0;
-    text-transform: none;
-    font-weight: 400;
-}
-.marker-dl-section-title {
-    font-family: 'Cinzel', serif;
-    font-size: 0.6rem;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--text-2);
-    margin-bottom: 4px;
-    text-align: left;
-}
+        /* ══════════════════════════════════════════════
+           RESPONSIVE — MOBILE TINY (< 360px)
+        ══════════════════════════════════════════════ */
+        @media (max-width: 359px) {
+            :root {
+                --sp-xs: 5px; --sp-sm: 8px; --sp-md: 12px; --sp-lg: 16px;
+            }
+            .guide-box h2   { letter-spacing: 3px; }
+            .marker-dl-hint { display: none; }
+            .ar-logo span   { display: none; }
+            #btn-back span  { display: none; }
+            .ar-badge       { letter-spacing: 1px; padding: 5px 8px; }
+            #scan-frame     { width: min(200px, 72vw); height: min(200px, 72vw); }
+        }
+
+        /* ══════════════════════════════════════════════
+           RESPONSIVE — MOBILE SMALL (360–480px)
+        ══════════════════════════════════════════════ */
+        @media (max-width: 480px) {
+            .guide-box { border-radius: 16px; }
+            .guide-box h2 { letter-spacing: 4px; }
+            .marker-btn { min-width: 40px; }
+            #marker-strip { gap: 6px; }
+        }
+
+        /* ══════════════════════════════════════════════
+           RESPONSIVE — TABLET PORTRAIT (481–768px)
+        ══════════════════════════════════════════════ */
+        @media (min-width: 481px) and (max-width: 768px) {
+            .guide-box  { max-width: 440px; }
+            #scan-frame { width: min(300px, 60vw, 60vh); height: min(300px, 60vw, 60vh); }
+        }
+
+        /* ══════════════════════════════════════════════
+           RESPONSIVE — TABLET LANDSCAPE / DESKTOP (769px+)
+        ══════════════════════════════════════════════ */
+        @media (min-width: 769px) {
+            .guide-box  { max-width: 520px; }
+            #scan-frame { width: min(320px, 55vw, 55vh); height: min(320px, 55vw, 55vh); }
+            .marker-btn { padding: 12px 20px; }
+        }
+
+        /* ══════════════════════════════════════════════
+           RESPONSIVE — LANDSCAPE MOBILE (height < 500px)
+        ══════════════════════════════════════════════ */
+        @media (max-height: 500px) and (orientation: landscape) {
+
+            /* Guide modal: 2-column grid to fit short screens */
+            #guide-modal { align-items: flex-start; padding: 8px 16px; }
+            .guide-box {
+                max-height: calc(100dvh - 16px);
+                padding: 14px 18px 14px 18px;
+                border-radius: 14px;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: auto auto 1fr auto;
+                column-gap: 18px; row-gap: 0;
+                text-align: left;
+                align-items: start;
+            }
+            .guide-box h2 {
+                grid-column: 1 / -1;
+                font-size: 0.75rem; margin-bottom: 3px;
+            }
+            .guide-box > p {
+                grid-column: 1 / -1;
+                margin-bottom: 8px; font-size: 0.76rem;
+            }
+            .marker-dl-section-title { grid-column: 1; }
+            .marker-downloads {
+                grid-column: 1; grid-row: 3;
+                margin-bottom: 0; gap: 5px;
+            }
+            .marker-dl-btn  { padding: 7px 10px; min-height: 36px; }
+            .marker-dl-hint { display: none; }
+            .guide-steps {
+                grid-column: 2; grid-row: 3;
+                margin-bottom: 0;
+            }
+            .guide-step     { font-size: 0.72rem; margin-bottom: 5px; }
+            #btn-start-ar {
+                grid-column: 1 / -1;
+                padding: 10px; font-size: 0.62rem;
+                margin-top: 8px; min-height: 36px;
+            }
+            #btn-close-guide { top: 8px; right: 8px; }
+
+            /* AR UI in landscape */
+            #ar-topbar    { padding-top: 6px; padding-bottom: 6px; }
+            #hint-panel   { padding-bottom: 8px; }
+            #marker-strip { gap: 5px; }
+            .marker-btn   { padding: 6px 10px; min-height: 38px; font-size: 0.46rem; }
+            #btn-toggle-fish {
+                bottom: max(72px, calc(var(--safe-b) + 72px));
+                padding: 9px 18px; font-size: 0.58rem;
+            }
+            #scan-frame {
+                width:  min(180px, 42vw, 70vh);
+                height: min(180px, 42vw, 70vh);
+            }
+            #controls { gap: 5px; }
+            .ctrl-btn { width: 38px; height: 38px; font-size: 0.85rem; }
+        }
+
+        /* ══════════════════════════════════════════════
+           RESPONSIVE — LANDSCAPE VERY SHORT (height < 380px)
+        ══════════════════════════════════════════════ */
+        @media (max-height: 380px) and (orientation: landscape) {
+            .guide-box { padding: 10px 14px; }
+            .guide-box h2 { font-size: 0.68rem; margin-bottom: 2px; }
+            .guide-box > p { font-size: 0.7rem; margin-bottom: 5px; }
+            .guide-step { font-size: 0.68rem; margin-bottom: 4px; }
+            .guide-step-num { width: 18px; height: 18px; font-size: 0.56rem; }
+            #btn-start-ar { padding: 8px; font-size: 0.58rem; min-height: 32px; }
+            .marker-dl-btn { padding: 5px 8px; min-height: 32px; }
+        }
+
+        /* ══════════════════════════════════════════════
+           FOCUS VISIBLE — keyboard nav
+        ══════════════════════════════════════════════ */
+        :focus-visible {
+            outline: 2px solid var(--cyan);
+            outline-offset: 2px;
+        }
+        button:focus:not(:focus-visible),
+        a:focus:not(:focus-visible) {
+            outline: none;
+        }
     </style>
 </head>
 <body>
@@ -670,80 +858,78 @@
 <!-- GUIDE MODAL -->
 <div id="guide-modal" role="dialog" aria-modal="true" aria-labelledby="guide-title">
     <div class="guide-box">
-    <button id="btn-close-guide" type="button" aria-label="Tutup panduan">
-        <i class="fas fa-xmark" aria-hidden="true"></i>
-    </button>
-    <h2 id="guide-title">AR Mode</h2>
-    <p>Scan marker untuk melihat objek 3D muncul dari kedalaman laut.</p>
+        <button id="btn-close-guide" type="button" aria-label="Tutup panduan">
+            <i class="fas fa-xmark" aria-hidden="true"></i>
+        </button>
+        <h2 id="guide-title">AR Mode</h2>
+        <p>Scan marker untuk melihat objek 3D muncul dari kedalaman laut.</p>
 
-    <!-- DOWNLOAD MARKERS -->
-    <div class="marker-dl-section-title">
-        <i class="fas fa-download" aria-hidden="true"></i>
-        &nbsp;Download Marker
-    </div>
-    <div class="marker-downloads">
-        <a href="patterns/pattern-koi-fish.png" download="Marker-Koi-Fish.png"
-           class="marker-dl-btn" aria-label="Download marker Koi Fish">
-            <div class="marker-dl-left">
-                <i class="fas fa-fish-fins" aria-hidden="true"></i>
-                <div class="marker-dl-label">
-                    <span class="marker-dl-name">Koi Fish</span>
-                    <span class="marker-dl-hint">Cetak & scan dengan kamera</span>
-                </div>
-            </div>
+        <!-- DOWNLOAD MARKERS -->
+        <div class="marker-dl-section-title">
             <i class="fas fa-download" aria-hidden="true"></i>
-        </a>
-
-        <a href="patterns/pattern-tuna-fish.png" download="Marker-Tuna-Fish.png"
-           class="marker-dl-btn" aria-label="Download marker Tuna Fish">
-            <div class="marker-dl-left">
-                <i class="fas fa-fish-fins" aria-hidden="true"></i>
-                <div class="marker-dl-label">
-                    <span class="marker-dl-name">Tuna Fish</span>
-                    <span class="marker-dl-hint">Cetak & scan dengan kamera</span>
+            &nbsp;Download Marker
+        </div>
+        <div class="marker-downloads">
+            <a href="patterns/pattern-koi-fish.png" download="Marker-Koi-Fish.png"
+               class="marker-dl-btn" aria-label="Download marker Koi Fish">
+                <div class="marker-dl-left">
+                    <i class="fas fa-fish-fins" aria-hidden="true"></i>
+                    <div class="marker-dl-label">
+                        <span class="marker-dl-name">Koi Fish</span>
+                        <span class="marker-dl-hint">Cetak &amp; scan dengan kamera</span>
+                    </div>
                 </div>
-            </div>
-            <i class="fas fa-download" aria-hidden="true"></i>
-        </a>
-
-        <a href="patterns/pattern-guppy-fish.png" download="Marker-Guppy-Fish.png"
-           class="marker-dl-btn" aria-label="Download marker Guppy Fish">
-            <div class="marker-dl-left">
-                <i class="fas fa-fish-fins" aria-hidden="true"></i>
-                <div class="marker-dl-label">
-                    <span class="marker-dl-name">Guppy Fish</span>
-                    <span class="marker-dl-hint">Cetak & scan dengan kamera</span>
+                <i class="fas fa-download" aria-hidden="true"></i>
+            </a>
+            <a href="patterns/pattern-tuna-fish.png" download="Marker-Tuna-Fish.png"
+               class="marker-dl-btn" aria-label="Download marker Tuna Fish">
+                <div class="marker-dl-left">
+                    <i class="fas fa-fish-fins" aria-hidden="true"></i>
+                    <div class="marker-dl-label">
+                        <span class="marker-dl-name">Tuna Fish</span>
+                        <span class="marker-dl-hint">Cetak &amp; scan dengan kamera</span>
+                    </div>
                 </div>
+                <i class="fas fa-download" aria-hidden="true"></i>
+            </a>
+            <a href="patterns/pattern-guppy-fish.png" download="Marker-Guppy-Fish.png"
+               class="marker-dl-btn" aria-label="Download marker Guppy Fish">
+                <div class="marker-dl-left">
+                    <i class="fas fa-fish-fins" aria-hidden="true"></i>
+                    <div class="marker-dl-label">
+                        <span class="marker-dl-name">Guppy Fish</span>
+                        <span class="marker-dl-hint">Cetak &amp; scan dengan kamera</span>
+                    </div>
+                </div>
+                <i class="fas fa-download" aria-hidden="true"></i>
+            </a>
+        </div>
+
+        <!-- STEPS -->
+        <div class="guide-steps">
+            <div class="guide-step">
+                <div class="guide-step-num" aria-hidden="true">1</div>
+                <span>Download &amp; cetak salah satu marker di atas</span>
             </div>
-            <i class="fas fa-download" aria-hidden="true"></i>
-        </a>
-    </div>
+            <div class="guide-step">
+                <div class="guide-step-num" aria-hidden="true">2</div>
+                <span>Klik tombol di bawah — browser akan meminta izin kamera</span>
+            </div>
+            <div class="guide-step">
+                <div class="guide-step-num" aria-hidden="true">3</div>
+                <span>Arahkan kamera ke marker — model ikan akan muncul otomatis</span>
+            </div>
+            <div class="guide-step">
+                <div class="guide-step-num" aria-hidden="true">4</div>
+                <span>Tekan tombol <strong style="color:var(--cyan)">Change</strong> untuk mengganti model ikan ke variasi lain</span>
+            </div>
+        </div>
 
-    <!-- STEPS -->
-    <div class="guide-steps">
-        <div class="guide-step">
-            <div class="guide-step-num" aria-hidden="true">1</div>
-            <span>Download & cetak salah satu marker di atas</span>
-        </div>
-        <div class="guide-step">
-            <div class="guide-step-num" aria-hidden="true">2</div>
-            <span>Klik tombol di bawah — browser akan meminta izin kamera</span>
-        </div>
-        <div class="guide-step">
-            <div class="guide-step-num" aria-hidden="true">3</div>
-            <span>Arahkan kamera ke marker — model ikan akan muncul otomatis</span>
-        </div>
-        <div class="guide-step">
-            <div class="guide-step-num" aria-hidden="true">4</div>
-            <span>Tekan tombol <strong style="color:var(--cyan)">Change</strong> untuk mengganti model ikan ke variasi lain</span>
-        </div>
+        <button id="btn-start-ar" type="button">
+            <i class="fas fa-camera" aria-hidden="true"></i>
+            &nbsp; Aktifkan Kamera AR
+        </button>
     </div>
-
-    <button id="btn-start-ar" type="button">
-        <i class="fas fa-camera" aria-hidden="true"></i>
-        &nbsp; Aktifkan Kamera AR
-    </button>
-</div>
 </div>
 
 <!-- LOADING -->
@@ -779,7 +965,7 @@
     <div id="ar-topbar">
         <a href="index.html" class="ar-logo" aria-label="Aquaculture — Back to home">
             <i class="fas fa-water" aria-hidden="true"></i>
-            AQUACULTURE
+            <span>AQUACULTURE</span>
         </a>
         <div class="ar-badge" role="status" aria-label="AR Live">
             <div class="live-dot" aria-hidden="true"></div>
@@ -787,7 +973,7 @@
         </div>
         <a href="index.html" id="btn-back">
             <i class="fas fa-arrow-left" aria-hidden="true"></i>
-            Kembali
+            <span>Kembali</span>
         </a>
     </div>
 </div>
@@ -807,7 +993,7 @@
     <div class="scan-line"></div>
 </div>
 
-<!-- ── TOGGLE FISH BUTTON ── -->
+<!-- TOGGLE FISH BUTTON -->
 <button id="btn-toggle-fish" type="button" aria-label="Ganti model ikan">
     <i class="fas fa-fish-fins btn-icon" aria-hidden="true"></i>
     <span id="toggle-label">Change</span>
@@ -853,19 +1039,6 @@
 </div>
 
 <script>
-    // ─────────────────────────────────────────────────────────────────────────
-    // MARKER CONFIG
-    //
-    // Setiap marker punya array `models` berisi 2 entry.
-    // Tombol Change akan toggle antara index 0 dan index 1.
-    //
-    // Untuk marker Koi     : model[0] = koi-fish.glb,   model[1] = goldfish.glb
-    // Untuk marker Tuna    : model[0] = koi-fish.glb,   model[1] = tuna-fish.glb
-    // Untuk marker Guppy   : model[0] = koi-fish.glb,   model[1] = guppy-fish.glb
-    //
-    // Ubah `modelUrl` sesuai file GLB yang tersedia.
-    // ─────────────────────────────────────────────────────────────────────────
-
     const MARKERS = [
         {
             id:   'marker-koi',
@@ -876,7 +1049,7 @@
                     key:      'model-a',
                     modelUrl: 'models/koi-fish.glb',
                     position: '0 0 0',
-                    scale:    '0.6 0.6 0.6',
+                    scale:    '0.3 0.3 0.3',
                     rotation: '-90 0 0',
                     info: { title: 'KOI FISH', sub: 'Cyprinus rubrofuscus — Ikan Hias Keberuntungan' }
                 },
@@ -884,7 +1057,7 @@
                     key:      'model-b',
                     modelUrl: 'models/goldfish.glb',
                     position: '0 0 0',
-                    scale:    '0.2 0.2 0.2',
+                    scale:    '0.06 0.06 0.06',
                     rotation: '0 90 -90',
                     info: { title: 'GOLDFISH', sub: 'Carassius auratus — Ikan Mas Hias' }
                 }
@@ -900,7 +1073,7 @@
                     key:      'model-a',
                     modelUrl: 'models/tuna-fish.glb',
                     position: '0 0 0',
-                    scale:    '0.6 0.6 0.6',
+                    scale:    '0.3 0.3 0.3',
                     rotation: '0 90 -90',
                     info: { title: 'TUNA FISH', sub: 'Thunnus — Ikan Laut Besar' }
                 },
@@ -908,9 +1081,9 @@
                     key:      'model-b',
                     modelUrl: 'models/kerapu.glb',
                     position: '0 0 0',
-                    scale:    '0.3 0.3 0.3',
+                    scale:    '0.06 0.06 0.06',
                     rotation: '0 90 -90',
-                    info: { title: 'KERAPU FISH', sub: 'Thunnus — Ikan Laut Besar' }
+                    info: { title: 'KERAPU FISH', sub: 'Epinephelus — Ikan Kerapu' }
                 }
             ],
             btnId: 'btn-m4'
@@ -924,7 +1097,7 @@
                     key:      'model-a',
                     modelUrl: 'models/guppy-fish.glb',
                     position: '0 0 0',
-                    scale:    '0.4 0.4 0.4',
+                    scale:    '0.2 0.2 0.2',
                     rotation: '0 90 -90',
                     info: { title: 'GUPPY FISH', sub: 'Poecilia reticulata — Ikan Hias Air Tawar' }
                 },
@@ -932,16 +1105,15 @@
                     key:      'model-b',
                     modelUrl: 'models/cupang.glb',
                     position: '0 0 0',
-                    scale:    '0.4 0.4 0.4',
+                    scale:    '0.3 0.3 0.3',
                     rotation: '-90 0 0',
-                    info: { title: 'CUPANG FISH', sub: 'Poecilia reticulata — Ikan Hias Air Tawar' }
+                    info: { title: 'CUPANG FISH', sub: 'Betta splendens — Ikan Hias Air Tawar' }
                 }
             ],
             btnId: 'btn-m5'
         }
     ];
 
-    // ── DOM REFS ──
     const guideModal  = document.getElementById('guide-modal');
     const arLoading   = document.getElementById('ar-loading');
     const cameraError = document.getElementById('camera-error');
@@ -951,9 +1123,7 @@
     const toastSub    = document.getElementById('toast-sub');
     const hintText    = document.getElementById('hint-text');
     const btnToggle   = document.getElementById('btn-toggle-fish');
-    const toggleLabel = document.getElementById('toggle-label');
 
-    // Map markerId → button element
     const markerBtns = {};
     MARKERS.forEach(m => { markerBtns[m.id] = document.getElementById(m.btnId); });
 
@@ -961,15 +1131,10 @@
     let arStarted    = false;
     let dragState    = null;
     const modelState = {};
-
-    // Per-marker toggle state: which model index is currently shown (0 or 1)
-    const activeModelIdx = {};   // markerId → 0|1
+    const activeModelIdx = {};
     MARKERS.forEach(m => { activeModelIdx[m.id] = 0; });
-
-    // Which marker is currently visible (found by camera)
     let activeMarkerId = null;
 
-    // ── GUIDE ──
     function showGuide() {
         guideModal.classList.remove('hidden');
         const firstFocus = guideModal.querySelector('button, a, input');
@@ -986,7 +1151,6 @@
         if (e.key === 'Escape' && arStarted) guideModal.classList.add('hidden');
     });
 
-    // ── TOAST ──
     function showToast(title, sub) {
         toastTitle.textContent = title;
         toastSub.textContent   = sub;
@@ -996,50 +1160,34 @@
     }
     function hideToast() { toast.classList.remove('show'); }
 
-    // ── TOGGLE BUTTON ──
     function updateToggleButton() {
-        if (activeMarkerId) {
-            btnToggle.classList.add('visible');
-        } else {
-            btnToggle.classList.remove('visible');
-        }
+        btnToggle.classList.toggle('visible', !!activeMarkerId);
     }
 
     function switchFishModel() {
         if (!activeMarkerId) return;
-
         const markerCfg = MARKERS.find(m => m.id === activeMarkerId);
         if (!markerCfg) return;
-
         const markerEl = document.getElementById(activeMarkerId);
         if (!markerEl) return;
 
-        // Spin animation
         btnToggle.classList.add('switching');
         setTimeout(() => btnToggle.classList.remove('switching'), 400);
 
-        // Toggle index
-        const prevIdx = activeModelIdx[activeMarkerId];
-        const nextIdx = prevIdx === 0 ? 1 : 0;
+        const nextIdx = activeModelIdx[activeMarkerId] === 0 ? 1 : 0;
         activeModelIdx[activeMarkerId] = nextIdx;
 
-        // Show / hide entities
         markerEl.querySelectorAll('[data-model-key]').forEach(entity => {
-            const key = entity.getAttribute('data-model-key');
-            entity.setAttribute('visible', key === markerCfg.models[nextIdx].key ? 'true' : 'false');
+            entity.setAttribute('visible',
+                entity.getAttribute('data-model-key') === markerCfg.models[nextIdx].key
+                    ? 'true' : 'false');
         });
 
-        // Toast
-        const info = markerCfg.models[nextIdx].info;
-        showToast(info.title, info.sub);
-
-        // Reset zoom/rotate state
+        showToast(markerCfg.models[nextIdx].info.title, markerCfg.models[nextIdx].info.sub);
         modelState[activeMarkerId] = { scale: 1, rotX: 0, rotY: 0 };
     }
-
     btnToggle.addEventListener('click', switchFishModel);
 
-    // ── BUILD A-SCENE ──
     function buildAndInjectScene() {
         if (document.getElementById('ar-scene')) return;
 
@@ -1049,7 +1197,6 @@
         scene.setAttribute('renderer', 'antialias:true; alpha:true; logarithmicDepthBuffer:true;');
         scene.setAttribute('vr-mode-ui', 'enabled:false');
         scene.setAttribute('loading-screen', 'enabled:false');
-
         scene.innerHTML = `
             <a-light type="ambient"     color="#ffffff" intensity="1.0"></a-light>
             <a-light type="directional" position="1 2 1"   color="#ffffff" intensity="0.8"></a-light>
@@ -1062,36 +1209,28 @@
             markerEl.setAttribute('type', 'pattern');
             markerEl.setAttribute('url', markerCfg.url);
 
-            // Build both model entities
             markerCfg.models.forEach((m, idx) => {
                 const entity = document.createElement('a-entity');
-                entity.setAttribute('gltf-model',       `url(${m.modelUrl})`);
-                entity.setAttribute('position',         m.position);
-                entity.setAttribute('scale',            m.scale);
-                entity.setAttribute('rotation',         m.rotation);
-                entity.setAttribute('animation-mixer',  'clip: *; loop: repeat; crossFadeDuration: 0.3');
-                entity.setAttribute('data-model-key',   m.key);
-                // Only model[0] visible at start
+                entity.setAttribute('gltf-model',      `url(${m.modelUrl})`);
+                entity.setAttribute('position',        m.position);
+                entity.setAttribute('scale',           m.scale);
+                entity.setAttribute('rotation',        m.rotation);
+                entity.setAttribute('animation-mixer', 'clip: *; loop: repeat; crossFadeDuration: 0.3');
+                entity.setAttribute('data-model-key',  m.key);
                 entity.setAttribute('visible', idx === 0 ? 'true' : 'false');
                 markerEl.appendChild(entity);
             });
 
-            // Marker Found
             markerEl.addEventListener('markerFound', () => {
                 activeMarkerId = markerCfg.id;
                 updateToggleButton();
-
-                const currentIdx  = activeModelIdx[markerCfg.id];
-                const info        = markerCfg.models[currentIdx].info;
+                const info = markerCfg.models[activeModelIdx[markerCfg.id]].info;
                 showToast(info.title, info.sub);
-
                 hintText.textContent = 'Objek terdeteksi — tekan tombol change untuk ganti model';
                 hintText.classList.add('found');
                 Object.values(markerBtns).forEach(b => b && b.classList.remove('active'));
                 if (markerBtns[markerCfg.id]) markerBtns[markerCfg.id].classList.add('active');
             });
-
-            // Marker Lost
             markerEl.addEventListener('markerLost', () => {
                 if (activeMarkerId === markerCfg.id) activeMarkerId = null;
                 updateToggleButton();
@@ -1107,55 +1246,41 @@
         const cam = document.createElement('a-entity');
         cam.setAttribute('camera', '');
         scene.appendChild(cam);
-
         document.body.insertBefore(scene, document.body.firstChild);
     }
 
-    // ── LOAD SCRIPTS ──
     function loadScript(src) {
         return new Promise((resolve, reject) => {
             const s = document.createElement('script');
-            s.src = src;
-            s.onload  = resolve;
-            s.onerror = reject;
+            s.src = src; s.onload = resolve; s.onerror = reject;
             document.head.appendChild(s);
         });
     }
 
     async function startAR() {
         if (arStarted) { guideModal.classList.add('hidden'); return; }
-
         if (!navigator.mediaDevices?.getUserMedia) {
             cameraError.classList.add('show');
-            guideModal.classList.add('hidden');
-            return;
+            guideModal.classList.add('hidden'); return;
         }
-
         try {
             await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
         } catch {
             guideModal.classList.add('hidden');
-            cameraError.classList.add('show');
-            return;
+            cameraError.classList.add('show'); return;
         }
-
         guideModal.classList.add('hidden');
-
         try { await document.documentElement.requestFullscreen(); } catch (_) {}
-
         arLoading.classList.add('show');
         btnStart.disabled = true;
-
         try {
             await loadScript('https://aframe.io/releases/1.4.2/aframe.min.js');
             await loadScript('https://cdn.jsdelivr.net/npm/@ar-js-org/ar.js@3.4.5/aframe/build/aframe-ar.js');
             await loadScript('https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js');
-
             arStarted = true;
             guideModal.classList.add('closeable');
             arLoading.classList.remove('show');
             buildAndInjectScene();
-
         } catch (err) {
             console.error('Gagal load AR scripts:', err);
             arLoading.classList.remove('show');
@@ -1172,35 +1297,30 @@
         showGuide();
     });
 
-    // ── ZOOM & ROTATE ──
+    /* ── ZOOM & ROTATE ── */
     function getActiveEntity() {
         if (!activeMarkerId) return null;
         const markerCfg = MARKERS.find(m => m.id === activeMarkerId);
         if (!markerCfg) return null;
         const markerEl = document.getElementById(activeMarkerId);
         if (!markerEl || !markerEl.object3D?.visible) return null;
-
-        const currentIdx = activeModelIdx[activeMarkerId];
-        const modelDef   = markerCfg.models[currentIdx];
-        const entity     = markerEl.querySelector(`[data-model-key="${modelDef.key}"]`);
+        const modelDef = markerCfg.models[activeModelIdx[activeMarkerId]];
+        const entity   = markerEl.querySelector(`[data-model-key="${modelDef.key}"]`);
         if (!entity) return null;
         return { entity, id: activeMarkerId, defaultRotation: modelDef.rotation, scale: modelDef.scale };
     }
 
     function zoomModel(factor) {
-        const active = getActiveEntity();
-        if (!active) return;
+        const active = getActiveEntity(); if (!active) return;
         const { entity, id, scale } = active;
         if (!modelState[id]) modelState[id] = { scale: 1, rotX: 0, rotY: 0 };
         modelState[id].scale = Math.min(Math.max(modelState[id].scale * factor, 0.1), 5);
-        const base = scale.split(' ').map(Number);
-        const s = modelState[id].scale;
+        const base = scale.split(' ').map(Number), s = modelState[id].scale;
         entity.setAttribute('scale', `${base[0]*s} ${base[1]*s} ${base[2]*s}`);
     }
 
     function resetModel() {
-        const active = getActiveEntity();
-        if (!active) return;
+        const active = getActiveEntity(); if (!active) return;
         const { entity, id, defaultRotation, scale } = active;
         modelState[id] = { scale: 1, rotX: 0, rotY: 0 };
         entity.setAttribute('scale', scale);
@@ -1208,29 +1328,24 @@
     }
 
     function onDragStart(x, y) {
-        const active = getActiveEntity();
-        if (!active) return;
+        const active = getActiveEntity(); if (!active) return;
         const { id } = active;
         if (!modelState[id]) modelState[id] = { scale: 1, rotX: 0, rotY: 0 };
         dragState = { startX: x, startY: y, id,
             baseRotX: modelState[id].rotX, baseRotY: modelState[id].rotY };
     }
-
     function onDragMove(x, y) {
         if (!dragState) return;
-        const { id } = dragState;
-        const active = getActiveEntity();
-        if (!active) return;
+        const active = getActiveEntity(); if (!active) return;
         const { entity, defaultRotation } = active;
-        const dx = x - dragState.startX;
-        const dy = y - dragState.startY;
+        const { id } = dragState;
+        const dx = x - dragState.startX, dy = y - dragState.startY;
         modelState[id].rotY = dragState.baseRotY + dx * 0.4;
         modelState[id].rotX = dragState.baseRotX + dy * 0.4;
         const defRot = defaultRotation.split(' ').map(Number);
         entity.setAttribute('rotation',
-            `${defRot[0] + modelState[id].rotX} ${defRot[1] + modelState[id].rotY} ${defRot[2]}`);
+            `${defRot[0]+modelState[id].rotX} ${defRot[1]+modelState[id].rotY} ${defRot[2]}`);
     }
-
     function onDragEnd() { dragState = null; }
 
     document.addEventListener('mousedown',  e => onDragStart(e.clientX, e.clientY));
@@ -1240,7 +1355,6 @@
     document.addEventListener('touchstart', e => {
         if (e.touches.length === 1) onDragStart(e.touches[0].clientX, e.touches[0].clientY);
     }, { passive: true });
-
     document.addEventListener('touchmove', e => {
         if (e.touches.length === 1) {
             onDragMove(e.touches[0].clientX, e.touches[0].clientY);
@@ -1250,7 +1364,7 @@
                 e.touches[0].clientX - e.touches[1].clientX,
                 e.touches[0].clientY - e.touches[1].clientY
             );
-            if (dragState && dragState.pinchStart) {
+            if (dragState?.pinchStart) {
                 zoomModel(dist > dragState.pinchStart ? 1.04 : 0.96);
                 dragState.pinchStart = dist;
             } else {
@@ -1259,9 +1373,7 @@
             }
         }
     }, { passive: true });
-
     document.addEventListener('touchend', onDragEnd);
-
     document.addEventListener('wheel', e => {
         e.preventDefault();
         zoomModel(e.deltaY < 0 ? 1.08 : 0.93);
