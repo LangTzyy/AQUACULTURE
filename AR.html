@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="description" content="AR Experience — Point your camera at the markers to reveal 3D deep-sea creatures." />
+    <title>AR Experience — AQUACULTURE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Text:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <style>
+        *, *::before, *::after {
+            margin: 0; padding: 0; box-sizing: border-box;
+        }
+
+        :root {
+            --black: #000000;
+            --void: #010409;
+            --navy-1: #020d1f;
+            --blue-dark: #0030aa;
+            --blue: #007bff;
+            --blue-light: #00b4ff;
+            --cyan: #00fff5;
+            --text-1: #cce4fa;
+            --text-2: rgba(150,190,230,0.55);
+            --glass: rgba(2,12,28,0.88);
+            --touch-min: 44px;
+            --radius: 12px;
+        }
+
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Crimson Text', serif;
+        }
+
+        a-scene { z-index: 0; }
+        #arjs-video, a-scene video {
+            object-fit: cover !important;
+            top: 0 !important; left: 0 !important;
+        }
+
+        /* ── UNDERWATER BACKGROUND ── */
+        #uw-bg {
+            position: fixed; inset: 0; z-index: -1; overflow: hidden;
+            background: linear-gradient(180deg,
+                #000c1a 0%, #001428 15%, #001e3c 30%,
+                #001530 55%, #000a1a 75%, #000408 100%);
+        }
+        .uw-caustics {
+            position: absolute; inset: 0;
+            background-image:
+                radial-gradient(ellipse 120px 60px at 20% 8%,  rgba(0,160,255,0.13) 0%, transparent 70%),
+                radial-gradient(ellipse 80px  40px at 55% 5%,  rgba(0,200,255,0.10) 0%, transparent 70%),
+                radial-gradient(ellipse 100px 50px at 80% 10%, rgba(0,140,220,0.12) 0%, transparent 70%),
+                radial-gradient(ellipse 60px  30px at 40% 3%,  rgba(100,220,255,0.08) 0%, transparent 60%);
+            animation: caustic-shift 8s ease-in-out infinite alternate;
+        }
+        @keyframes caustic-shift {
+            0%   { transform: translateX(-2%) scaleX(1);    opacity: .7; }
+            100% { transform: translateX(2%)  scaleX(1.08); opacity: 1; }
+        }
+        .uw-ray {
+            position: absolute; top: -10%; transform-origin: top center;
+            background: linear-gradient(180deg, rgba(0,150,255,0.18) 0%, rgba(0,80,200,0.06) 60%, transparent 100%);
+            filter: blur(12px); border-radius: 50%;
+            animation: ray-drift var(--d, 9s) ease-in-out infinite alternate;
+        }
+        @keyframes ray-drift {
+            0%   { transform: rotate(var(--ra, -4deg)) scaleX(1);   opacity: .5; }
+            100% { transform: rotate(var(--rb, 4deg))  scaleX(1.5); opacity: .9; }
+        }
+        .uw-p {
+            position: absolute; border-radius: 50%;
+            background: var(--c, rgba(0,230,255,0.8));
+            box-shadow: 0 0 8px 2px var(--c, rgba(0,230,255,0.4));
+            animation: drift-up var(--pd, 14s) linear infinite;
+            animation-delay: var(--del, 0s);
+            bottom: -10px; left: var(--x, 50%);
+            width: var(--s, 3px); height: var(--s, 3px);
+        }
+        @keyframes drift-up {
+            0%   { transform: translateY(0) translateX(0); opacity: 0; }
+            8%   { opacity: 1; }
+            85%  { opacity: .7; }
+            100% { transform: translateY(-110vh) translateX(var(--dx, 20px)); opacity: 0; }
+        }
+        .uw-bubble {
+            position: absolute; border-radius: 50%;
+            border: 1px solid rgba(150,230,255,0.4);
+            background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.18), rgba(0,150,255,0.05));
+            animation: bubble-rise var(--bd, 12s) ease-in infinite;
+            animation-delay: var(--bde, 0s);
+            bottom: -30px; left: var(--bx, 50%);
+            width: var(--bs, 10px); height: var(--bs, 10px);
+        }
+        @keyframes bubble-rise {
+            0%   { transform: translateY(0) translateX(0); opacity: 0; }
+            8%   { opacity: .8; }
+            88%  { opacity: .4; }
+            100% { transform: translateY(-110vh) translateX(var(--bdx, 15px)); opacity: 0; }
+        }
+        .uw-fish {
+            position: absolute;
+            animation: fish-swim var(--fd, 22s) linear infinite;
+            animation-delay: var(--fde, 0s); opacity: .3;
+        }
+        @keyframes fish-swim {
+            0%   { transform: translateX(-80px); }
+            100% { transform: translateX(calc(100vw + 80px)); }
+        }
+        .uw-weed {
+            position: absolute; bottom: 0; transform-origin: bottom center;
+            animation: weed-sway var(--wd, 4s) ease-in-out infinite alternate;
+            animation-delay: var(--wde, 0s);
+        }
+        @keyframes weed-sway {
+            0%   { transform: rotate(var(--wa, -10deg)) scaleX(1); }
+            100% { transform: rotate(var(--wb, 10deg))  scaleX(.85); }
+        }
+        .uw-blade {
+            border-radius: 40% 60% 20% 80% / 60% 30% 80% 40%;
+            background: linear-gradient(180deg, var(--wtop, #005c3a) 0%, var(--wbot, #003322) 100%);
+            width: var(--ww, 12px); opacity: .85;
+        }
+        .uw-floor {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 50px;
+            background: linear-gradient(0deg, rgba(10,8,4,0.98) 0%, rgba(12,10,5,0.85) 40%, transparent 100%);
+        }
+        .uw-ripple {
+            position: absolute; bottom: 20px; left: 0; right: 0; height: 8px;
+            background: repeating-linear-gradient(90deg,
+                transparent 0px, transparent 18px,
+                rgba(0,80,60,0.15) 18px, rgba(0,80,60,0.15) 20px);
+            filter: blur(1px);
+        }
+        .uw-haze {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 200px;
+            background: linear-gradient(0deg, rgba(0,5,15,0.9) 0%, transparent 100%);
+        }
+        .uw-vignette {
+            position: absolute; inset: 0;
+            background: radial-gradient(ellipse at 50% 40%, transparent 30%, rgba(0,2,8,0.72) 100%);
+        }
+
+        /* ── LOADING SCREEN ── */
+        #ar-loading {
+            display: none;
+            position: fixed; inset: 0; z-index: 190;
+            background: rgba(0,2,10,0.97);
+            align-items: center; justify-content: center;
+            flex-direction: column; gap: 20px;
+        }
+        #ar-loading.show { display: flex; }
+        .loading-spinner {
+            width: 48px; height: 48px;
+            border: 3px solid rgba(0,120,255,0.15);
+            border-top-color: var(--cyan);
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text {
+            font-family: 'Cinzel', serif;
+            font-size: 0.7rem; letter-spacing: 4px;
+            text-transform: uppercase; color: var(--text-2);
+        }
+
+        /* ── GUIDE MODAL ── */
+        #guide-modal {
+            position: fixed; inset: 0; z-index: 200;
+            background: rgba(0,2,10,0.97);
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px; backdrop-filter: blur(8px);
+            overflow-y: auto; overscroll-behavior: contain;
+        }
+        #guide-modal.hidden { display: none; }
+
+        .guide-box {
+            max-width: 480px; width: 100%;
+            border: 1px solid rgba(0,120,255,0.2); border-radius: 20px;
+            background: rgba(2,12,30,0.97);
+            padding: clamp(24px,5vw,36px) clamp(20px,4vw,32px);
+            text-align: center;
+            max-height: calc(100dvh - 40px); overflow-y: auto;
+            position: relative;
+        }
+        #btn-close-guide {
+            position: absolute; top: 14px; right: 14px;
+            width: 32px; height: 32px; border-radius: 50%;
+            border: 1px solid rgba(0,100,255,0.25);
+            background: rgba(0,10,40,0.7);
+            color: var(--text-2); font-size: 0.8rem;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.25s; line-height: 1;
+        }
+        #btn-close-guide:hover, #btn-close-guide:focus-visible {
+            background: rgba(0,40,120,0.6);
+            border-color: rgba(0,200,255,0.4);
+            color: var(--cyan);
+            box-shadow: 0 0 12px rgba(0,200,255,0.15);
+        }
+        #guide-modal:not(.closeable) #btn-close-guide { display: none; }
+        .guide-box h2 {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(0.9rem,3vw,1.1rem); font-weight: 900;
+            letter-spacing: 5px; text-transform: uppercase;
+            color: var(--blue-light); margin-bottom: 8px;
+        }
+        .guide-box > p {
+            font-style: italic; color: var(--text-2);
+            font-size: clamp(0.82rem,2.5vw,0.92rem);
+            margin-bottom: 24px; line-height: 1.8;
+        }
+        .guide-steps { text-align: left; margin-bottom: 24px; }
+        .guide-step {
+            display: flex; gap: 12px; align-items: flex-start;
+            margin-bottom: 12px;
+            font-size: clamp(0.8rem,2.2vw,0.88rem);
+            color: var(--text-2); line-height: 1.6;
+        }
+        .guide-step-num {
+            width: 24px; height: 24px; border-radius: 50%;
+            background: rgba(0,60,180,0.3); border: 1px solid rgba(0,120,255,0.3);
+            color: var(--blue-light); font-family: 'Cinzel', serif;
+            font-size: 0.65rem; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; margin-top: 2px;
+        }
+        #btn-start-ar {
+            width: 100%; padding: 18px; border-radius: var(--radius);
+            border: none; background: linear-gradient(135deg, var(--blue-dark), var(--blue));
+            color: #fff; font-family: 'Cinzel', serif;
+            font-size: clamp(0.7rem,2.5vw,0.76rem); font-weight: 700;
+            letter-spacing: 4px; text-transform: uppercase;
+            cursor: pointer; transition: all 0.3s;
+            box-shadow: 0 4px 32px rgba(0,90,255,0.25);
+            min-height: var(--touch-min);
+        }
+        #btn-start-ar:hover, #btn-start-ar:focus-visible {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 40px rgba(0,120,255,0.35);
+        }
+        #btn-start-ar:active { transform: translateY(0); }
+        #btn-start-ar:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        /* ── TOP LINE ── */
+        .top-line {
+            position: fixed; top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--blue-dark), var(--blue), var(--cyan), var(--blue), var(--blue-dark), transparent);
+            background-size: 200% 100%;
+            animation: line-sweep 4s linear infinite;
+            z-index: 999;
+        }
+        @keyframes line-sweep { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+
+        /* ── AR OVERLAY ── */
+        #ar-overlay {
+            position: fixed; inset: 0; z-index: 100;
+            pointer-events: none; display: flex; flex-direction: column;
+        }
+        #ar-topbar {
+            pointer-events: all;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: clamp(12px,2.5vw,16px) clamp(14px,3vw,20px);
+            background: linear-gradient(180deg, rgba(0,3,15,0.92) 0%, transparent 100%);
+            backdrop-filter: blur(8px); gap: 12px;
+        }
+        .ar-logo {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(0.6rem,1.8vw,0.78rem); font-weight: 900;
+            color: var(--blue-light); letter-spacing: 5px; text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(0,180,255,0.5);
+            display: flex; align-items: center; gap: 8px;
+            text-decoration: none; min-height: var(--touch-min); flex-shrink: 0;
+        }
+        .ar-badge {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 14px; border-radius: 50px;
+            border: 1px solid rgba(0,200,255,0.3); background: rgba(0,20,80,0.4);
+            font-size: 0.6rem; font-weight: 700; color: var(--cyan);
+            letter-spacing: 3px; text-transform: uppercase; white-space: nowrap;
+        }
+        .ar-badge .live-dot {
+            width: 5px; height: 5px; border-radius: 50%;
+            background: var(--cyan); box-shadow: 0 0 8px var(--cyan);
+            animation: blink 1.2s ease-in-out infinite; flex-shrink: 0;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.15; } }
+        #btn-back {
+            background: rgba(0,20,80,0.5); border: 1px solid rgba(0,100,255,0.25);
+            color: var(--blue-light); font-family: 'Cinzel', serif;
+            font-size: clamp(0.6rem,1.8vw,0.7rem); font-weight: 600;
+            letter-spacing: 2px; text-transform: uppercase;
+            padding: 10px 16px; border-radius: var(--radius);
+            cursor: pointer; display: flex; align-items: center; gap: 8px;
+            transition: all 0.3s; backdrop-filter: blur(4px);
+            text-decoration: none; min-height: var(--touch-min);
+            white-space: nowrap; flex-shrink: 0;
+        }
+        #btn-back:hover, #btn-back:focus-visible {
+            background: rgba(0,60,200,0.2);
+            border-color: rgba(0,180,255,0.4); color: var(--cyan);
+        }
+
+        /* ── SCANNING FRAME ── */
+        #scan-frame {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: min(280px, 70vw, 70vh); height: min(280px, 70vw, 70vh);
+            pointer-events: none; z-index: 101; transition: opacity 0.5s;
+        }
+        #scan-frame .corner {
+            position: absolute; width: 26px; height: 26px;
+            border-color: var(--cyan); border-style: solid; opacity: 0.8;
+        }
+        #scan-frame .corner.tl { top: 0; left: 0; border-width: 2px 0 0 2px; border-radius: 4px 0 0 0; }
+        #scan-frame .corner.tr { top: 0; right: 0; border-width: 2px 2px 0 0; border-radius: 0 4px 0 0; }
+        #scan-frame .corner.bl { bottom: 0; left: 0; border-width: 0 0 2px 2px; border-radius: 0 0 0 4px; }
+        #scan-frame .corner.br { bottom: 0; right: 0; border-width: 0 2px 2px 0; border-radius: 0 0 4px 0; }
+        .scan-line {
+            position: absolute; left: 0; right: 0; height: 1.5px;
+            background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+            box-shadow: 0 0 10px var(--cyan);
+            animation: scan-sweep 2.5s ease-in-out infinite; top: 0;
+        }
+        @keyframes scan-sweep {
+            0%   { top: 0%;   opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: 0.6; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        /* ── HINT PANEL ── */
+        #hint-panel {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            padding: 0 clamp(12px,3vw,20px) clamp(20px,5vh,32px);
+            background: linear-gradient(0deg, rgba(0,3,15,0.95) 0%, transparent 100%);
+            backdrop-filter: blur(4px); z-index: 101; pointer-events: none;
+        }
+        #hint-text {
+            text-align: center; font-family: 'Cinzel', serif;
+            font-size: clamp(0.6rem,2vw,0.72rem); font-weight: 600;
+            color: var(--text-2); letter-spacing: 3px; text-transform: uppercase;
+            margin-bottom: 14px; transition: color 0.5s;
+        }
+        #hint-text.found {
+            color: var(--cyan); text-shadow: 0 0 20px rgba(0,255,245,0.3);
+        }
+        #marker-strip {
+            display: flex; justify-content: center; gap: 10px;
+            pointer-events: all; flex-wrap: wrap;
+        }
+        .marker-btn {
+            display: flex; flex-direction: column; align-items: center; gap: 5px;
+            padding: clamp(10px,2vw,12px) clamp(12px,2.5vw,16px);
+            border-radius: 10px; border: 1px solid rgba(0,100,255,0.2);
+            background: rgba(0,10,40,0.7); cursor: pointer; transition: all 0.3s;
+            color: var(--text-2); font-family: 'Cinzel', serif;
+            font-size: 0.52rem; letter-spacing: 1.5px; text-transform: uppercase;
+            min-height: var(--touch-min); min-width: var(--touch-min);
+        }
+        .marker-btn.active {
+            border-color: rgba(0,200,255,0.5); background: rgba(0,40,120,0.5);
+            color: var(--cyan); box-shadow: 0 0 16px rgba(0,200,255,0.1);
+        }
+        .marker-btn i { font-size: 1rem; }
+
+        /* ── OBJECT INFO TOAST ── */
+        #obj-toast {
+            position: fixed; top: clamp(72px,12vh,90px); left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: var(--glass); border: 1px solid rgba(0,180,255,0.2);
+            border-radius: 14px; padding: 12px clamp(16px,4vw,22px);
+            z-index: 102; text-align: center; backdrop-filter: blur(16px);
+            opacity: 0; transition: all 0.4s; pointer-events: none;
+            max-width: calc(100vw - 32px);
+        }
+        #obj-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        #obj-toast .toast-title {
+            font-family: 'Cinzel', serif; font-size: clamp(0.65rem,2.5vw,0.78rem);
+            font-weight: 700; color: var(--cyan); letter-spacing: 3px;
+            text-transform: uppercase; margin-bottom: 4px;
+        }
+        #obj-toast .toast-sub {
+            font-style: italic; font-size: clamp(0.75rem,2.5vw,0.82rem); color: var(--text-2);
+        }
+
+        /* ── TOGGLE FISH BUTTON ── */
+        #btn-toggle-fish {
+            display: none;
+            position: fixed;
+            bottom: clamp(110px, 22vh, 140px);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 102;
+            pointer-events: all;
+            padding: 14px 28px;
+            border-radius: 50px;
+            border: 1.5px solid rgba(0,200,255,0.45);
+            background: rgba(0,10,40,0.82);
+            backdrop-filter: blur(12px);
+            color: var(--cyan);
+            font-family: 'Cinzel', serif;
+            font-size: clamp(0.62rem, 2vw, 0.72rem);
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px rgba(0,200,255,0.1), inset 0 0 12px rgba(0,150,255,0.05);
+            white-space: nowrap;
+            gap: 8px;
+            align-items: center;
+        }
+        #btn-toggle-fish.visible {
+            display: flex;
+        }
+        #btn-toggle-fish:hover, #btn-toggle-fish:focus-visible {
+            background: rgba(0,40,120,0.7);
+            border-color: var(--cyan);
+            box-shadow: 0 0 32px rgba(0,200,255,0.25), inset 0 0 16px rgba(0,180,255,0.08);
+            transform: translateX(-50%) translateY(-2px);
+        }
+        #btn-toggle-fish:active {
+            transform: translateX(-50%) translateY(0);
+        }
+        #btn-toggle-fish.visible::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50px;
+            border: 1.5px solid rgba(0,200,255,0.3);
+            animation: pulse-ring 2s ease-out infinite;
+        }
+        @keyframes pulse-ring {
+            0%   { transform: scale(1);   opacity: 0.6; }
+            100% { transform: scale(1.12); opacity: 0; }
+        }
+        #btn-toggle-fish .btn-icon { transition: transform 0.3s; }
+        #btn-toggle-fish.switching .btn-icon {
+            animation: icon-spin 0.4s ease;
+        }
+        @keyframes icon-spin {
+            0%   { transform: rotate(0deg) scale(1); }
+            50%  { transform: rotate(180deg) scale(0.6); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        /* ── CONTROLS ── */
+        #controls {
+            position: fixed; right: clamp(10px,2.5vw,16px); top: 50%;
+            transform: translateY(-50%); display: flex; flex-direction: column;
+            gap: 10px; z-index: 101; pointer-events: all;
+        }
+        .ctrl-btn {
+            width: var(--touch-min); height: var(--touch-min);
+            border-radius: 10px; border: 1px solid rgba(0,100,255,0.25);
+            background: rgba(0,10,40,0.7); color: var(--blue-light);
+            font-size: 1rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s; backdrop-filter: blur(8px);
+        }
+        .ctrl-btn:hover, .ctrl-btn:focus-visible {
+            border-color: rgba(0,200,255,0.4); background: rgba(0,40,120,0.5);
+            color: var(--cyan); box-shadow: 0 0 16px rgba(0,180,255,0.15);
+        }
+
+        /* ── CAMERA ERROR ── */
+        #camera-error {
+            display: none; position: fixed; inset: 0; z-index: 150;
+            background: rgba(0,2,10,0.97);
+            align-items: center; justify-content: center; padding: 24px;
+        }
+        #camera-error.show { display: flex; }
+        .error-box {
+            max-width: 360px; width: 100%; text-align: center;
+            border: 1px solid rgba(255,60,60,0.2); border-radius: 20px;
+            background: rgba(2,12,30,0.97); padding: 36px 28px;
+        }
+        .error-icon { font-size: 2.5rem; color: rgba(255,100,100,0.6); margin-bottom: 20px; }
+        .error-title {
+            font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 700;
+            color: var(--text-1); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px;
+        }
+        .error-msg {
+            font-style: italic; color: var(--text-2); font-size: 0.9rem;
+            margin-bottom: 24px; line-height: 1.8;
+        }
+        .error-actions { display: flex; flex-direction: column; gap: 10px; }
+        .btn-retry {
+            padding: 14px 24px; border-radius: var(--radius); border: none;
+            background: linear-gradient(135deg, var(--blue-dark), var(--blue));
+            color: #fff; font-family: 'Cinzel', serif; font-size: 0.7rem;
+            font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+            cursor: pointer; transition: all 0.3s; min-height: var(--touch-min);
+        }
+        .btn-retry:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,90,255,0.3); }
+        .btn-back-home {
+            padding: 12px 24px; border-radius: var(--radius);
+            border: 1px solid rgba(0,100,255,0.2); background: transparent;
+            color: var(--blue-light); font-family: 'Cinzel', serif;
+            font-size: 0.7rem; font-weight: 600; letter-spacing: 2px;
+            text-transform: uppercase; cursor: pointer; text-decoration: none;
+            display: flex; align-items: center; justify-content: center;
+            gap: 8px; min-height: var(--touch-min); transition: all 0.3s;
+        }
+        .btn-back-home:hover { border-color: rgba(0,200,255,0.4); color: var(--cyan); }
+
+        /* ── MARKER DOWNLOADS ── */
+.marker-downloads {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+.marker-dl-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    border: 1px solid rgba(0,120,255,0.25);
+    background: rgba(0,20,70,0.5);
+    color: var(--text-1);
+    text-decoration: none;
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.62rem, 2vw, 0.7rem);
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    transition: all 0.3s;
+    min-height: var(--touch-min);
+}
+.marker-dl-btn:hover, .marker-dl-btn:focus-visible {
+    border-color: rgba(0,200,255,0.45);
+    background: rgba(0,40,120,0.5);
+    color: var(--cyan);
+    box-shadow: 0 0 16px rgba(0,180,255,0.12);
+    transform: translateY(-1px);
+}
+.marker-dl-btn:active {
+    transform: translateY(0);
+}
+.marker-dl-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.marker-dl-btn i.fa-fish-fins {
+    font-size: 1rem;
+    color: var(--blue-light);
+    flex-shrink: 0;
+    transition: color 0.3s;
+}
+.marker-dl-btn:hover i.fa-fish-fins {
+    color: var(--cyan);
+}
+.marker-dl-btn i.fa-download {
+    font-size: 0.8rem;
+    color: var(--text-2);
+    flex-shrink: 0;
+    transition: color 0.3s;
+}
+.marker-dl-btn:hover i.fa-download {
+    color: var(--cyan);
+}
+.marker-dl-label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: left;
+}
+.marker-dl-name {
+    color: var(--text-1);
+    transition: color 0.3s;
+}
+.marker-dl-btn:hover .marker-dl-name {
+    color: var(--cyan);
+}
+.marker-dl-hint {
+    font-family: 'Crimson Text', serif;
+    font-style: italic;
+    font-size: 0.75rem;
+    color: var(--text-2);
+    letter-spacing: 0;
+    text-transform: none;
+    font-weight: 400;
+}
+.marker-dl-section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-2);
+    margin-bottom: 4px;
+    text-align: left;
+}
+    </style>
+</head>
+<body>
+<div class="top-line"></div>
+
+<!-- ── UNDERWATER BACKGROUND ── -->
+<div id="uw-bg">
+    <div class="uw-caustics"></div>
+    <div class="uw-ray" style="left:8%;  width:80px;  height:110%;--ra:-7deg;--rb:2deg;--d:11s"></div>
+    <div class="uw-ray" style="left:25%; width:50px;  height:105%;--ra:-3deg;--rb:6deg;--d:8s"></div>
+    <div class="uw-ray" style="left:42%; width:110px; height:115%;--ra:-5deg;--rb:4deg;--d:13s"></div>
+    <div class="uw-ray" style="left:62%; width:65px;  height:108%;--ra:-4deg;--rb:7deg;--d:9s"></div>
+    <div class="uw-ray" style="left:80%; width:90px;  height:112%;--ra:-6deg;--rb:3deg;--d:10s"></div>
+
+    <div class="uw-p" style="--x:4%;  --s:2px;--pd:15s;--del:0s;  --dx:18px; --c:rgba(0,255,200,0.9)"></div>
+    <div class="uw-p" style="--x:10%; --s:3px;--pd:11s;--del:2s;  --dx:-14px;--c:rgba(0,180,255,0.8)"></div>
+    <div class="uw-p" style="--x:19%; --s:2px;--pd:17s;--del:5s;  --dx:24px; --c:rgba(120,255,220,0.7)"></div>
+    <div class="uw-p" style="--x:28%; --s:4px;--pd:9s; --del:1s;  --dx:-20px;--c:rgba(0,220,255,1.0)"></div>
+    <div class="uw-p" style="--x:38%; --s:2px;--pd:13s;--del:3.5s;--dx:16px; --c:rgba(0,255,180,0.7)"></div>
+    <div class="uw-p" style="--x:48%; --s:3px;--pd:10s;--del:7s;  --dx:-22px;--c:rgba(80,160,255,0.9)"></div>
+    <div class="uw-p" style="--x:57%; --s:2px;--pd:16s;--del:4s;  --dx:20px; --c:rgba(0,255,240,0.8)"></div>
+    <div class="uw-p" style="--x:66%; --s:4px;--pd:12s;--del:0.5s;--dx:-12px;--c:rgba(160,220,255,0.7)"></div>
+    <div class="uw-p" style="--x:76%; --s:2px;--pd:11s;--del:6s;  --dx:22px; --c:rgba(0,240,200,0.9)"></div>
+    <div class="uw-p" style="--x:85%; --s:3px;--pd:14s;--del:2.5s;--dx:-18px;--c:rgba(0,200,255,0.8)"></div>
+    <div class="uw-p" style="--x:93%; --s:2px;--pd:9s; --del:4.5s;--dx:14px; --c:rgba(100,255,230,0.7)"></div>
+    <div class="uw-p" style="--x:33%; --s:2px;--pd:18s;--del:8s;  --dx:-10px;--c:rgba(200,180,255,0.6)"></div>
+    <div class="uw-p" style="--x:72%; --s:3px;--pd:13s;--del:1.5s;--dx:18px; --c:rgba(180,120,255,0.5)"></div>
+
+    <div class="uw-bubble" style="--bx:7%;  --bs:7px; --bd:13s;--bde:0s;  --bdx:12px"></div>
+    <div class="uw-bubble" style="--bx:16%; --bs:12px;--bd:9s; --bde:2s;  --bdx:-18px"></div>
+    <div class="uw-bubble" style="--bx:27%; --bs:5px; --bd:16s;--bde:4.5s;--bdx:22px"></div>
+    <div class="uw-bubble" style="--bx:39%; --bs:9px; --bd:11s;--bde:1s;  --bdx:-14px"></div>
+    <div class="uw-bubble" style="--bx:51%; --bs:15px;--bd:8s; --bde:6.5s;--bdx:10px"></div>
+    <div class="uw-bubble" style="--bx:62%; --bs:6px; --bd:14s;--bde:3s;  --bdx:-22px"></div>
+    <div class="uw-bubble" style="--bx:73%; --bs:11px;--bd:10s;--bde:5s;  --bdx:18px"></div>
+    <div class="uw-bubble" style="--bx:84%; --bs:8px; --bd:13s;--bde:0.5s;--bdx:-10px"></div>
+    <div class="uw-bubble" style="--bx:92%; --bs:4px; --bd:17s;--bde:7.5s;--bdx:14px"></div>
+
+    <div class="uw-fish" style="top:22%;--fd:22s;--fde:0s">
+        <svg width="55" height="22" viewBox="0 0 55 22" fill="none">
+            <ellipse cx="28" cy="11" rx="18" ry="7" fill="rgba(0,80,140,0.5)"/>
+            <polygon points="0,11 12,4 12,18" fill="rgba(0,80,140,0.4)"/>
+            <ellipse cx="40" cy="9" rx="4" ry="3" fill="rgba(0,100,160,0.4)"/>
+            <circle cx="42" cy="8" r="1.5" fill="rgba(0,120,180,0.6)"/>
+        </svg>
+    </div>
+    <div class="uw-fish" style="top:58%;--fd:29s;--fde:7s;opacity:.22">
+        <svg width="38" height="16" viewBox="0 0 38 16" fill="none">
+            <ellipse cx="20" cy="8" rx="12" ry="5" fill="rgba(0,60,120,0.5)"/>
+            <polygon points="0,8 9,3 9,13" fill="rgba(0,60,120,0.4)"/>
+            <circle cx="28" cy="6" r="1.2" fill="rgba(0,100,160,0.5)"/>
+        </svg>
+    </div>
+
+    <div class="uw-weed" style="left:2%;   --wd:3.8s;--wde:0s; --wa:-12deg;--wb:9deg"><div  class="uw-blade" style="--ww:14px;height:95px; --wtop:#005c3a;--wbot:#003322"></div></div>
+    <div class="uw-weed" style="left:3.5%; --wd:4.5s;--wde:.4s;--wa:-8deg; --wb:14deg"><div class="uw-blade" style="--ww:10px;height:65px; --wtop:#004d30;--wbot:#002a1a"></div></div>
+    <div class="uw-weed" style="left:6%;   --wd:3.2s;--wde:.8s;--wa:-15deg;--wb:7deg"> <div class="uw-blade" style="--ww:18px;height:120px;--wtop:#006644;--wbot:#003322"></div></div>
+    <div class="uw-weed" style="left:8%;   --wd:5s;  --wde:.2s;--wa:-6deg; --wb:11deg"><div class="uw-blade" style="--ww:9px; height:50px; --wtop:#004433;--wbot:#002211"></div></div>
+    <div class="uw-weed" style="right:3%;  --wd:4.2s;--wde:.3s;--wa:-10deg;--wb:12deg"><div class="uw-blade" style="--ww:16px;height:105px;--wtop:#005c3a;--wbot:#003322"></div></div>
+    <div class="uw-weed" style="right:5%;  --wd:3.6s;--wde:.7s;--wa:-14deg;--wb:6deg"> <div class="uw-blade" style="--ww:11px;height:70px; --wtop:#004d30;--wbot:#002a1a"></div></div>
+    <div class="uw-weed" style="right:7%;  --wd:4.8s;--wde:0s; --wa:-7deg; --wb:13deg"><div class="uw-blade" style="--ww:20px;height:130px;--wtop:#006644;--wbot:#003322"></div></div>
+    <div class="uw-weed" style="right:9.5%;--wd:3.4s;--wde:.5s;--wa:-11deg;--wb:8deg"> <div class="uw-blade" style="--ww:8px; height:45px; --wtop:#004433;--wbot:#002211"></div></div>
+
+    <div class="uw-ripple"></div>
+    <div class="uw-floor"></div>
+    <div class="uw-haze"></div>
+    <div class="uw-vignette"></div>
+</div>
+
+<!-- GUIDE MODAL -->
+<div id="guide-modal" role="dialog" aria-modal="true" aria-labelledby="guide-title">
+    <div class="guide-box">
+    <button id="btn-close-guide" type="button" aria-label="Tutup panduan">
+        <i class="fas fa-xmark" aria-hidden="true"></i>
+    </button>
+    <h2 id="guide-title">AR Mode</h2>
+    <p>Scan marker untuk melihat objek 3D muncul dari kedalaman laut.</p>
+
+    <!-- DOWNLOAD MARKERS -->
+    <div class="marker-dl-section-title">
+        <i class="fas fa-download" aria-hidden="true"></i>
+        &nbsp;Download Marker
+    </div>
+    <div class="marker-downloads">
+        <a href="patterns/pattern-koi-fish.png" download="Marker-Koi-Fish.png"
+           class="marker-dl-btn" aria-label="Download marker Koi Fish">
+            <div class="marker-dl-left">
+                <i class="fas fa-fish-fins" aria-hidden="true"></i>
+                <div class="marker-dl-label">
+                    <span class="marker-dl-name">Koi Fish</span>
+                    <span class="marker-dl-hint">Cetak & scan dengan kamera</span>
+                </div>
+            </div>
+            <i class="fas fa-download" aria-hidden="true"></i>
+        </a>
+
+        <a href="patterns/pattern-tuna-fish.png" download="Marker-Tuna-Fish.png"
+           class="marker-dl-btn" aria-label="Download marker Tuna Fish">
+            <div class="marker-dl-left">
+                <i class="fas fa-fish-fins" aria-hidden="true"></i>
+                <div class="marker-dl-label">
+                    <span class="marker-dl-name">Tuna Fish</span>
+                    <span class="marker-dl-hint">Cetak & scan dengan kamera</span>
+                </div>
+            </div>
+            <i class="fas fa-download" aria-hidden="true"></i>
+        </a>
+
+        <a href="patterns/pattern-guppy-fish.png" download="Marker-Guppy-Fish.png"
+           class="marker-dl-btn" aria-label="Download marker Guppy Fish">
+            <div class="marker-dl-left">
+                <i class="fas fa-fish-fins" aria-hidden="true"></i>
+                <div class="marker-dl-label">
+                    <span class="marker-dl-name">Guppy Fish</span>
+                    <span class="marker-dl-hint">Cetak & scan dengan kamera</span>
+                </div>
+            </div>
+            <i class="fas fa-download" aria-hidden="true"></i>
+        </a>
+    </div>
+
+    <!-- STEPS -->
+    <div class="guide-steps">
+        <div class="guide-step">
+            <div class="guide-step-num" aria-hidden="true">1</div>
+            <span>Download & cetak salah satu marker di atas</span>
+        </div>
+        <div class="guide-step">
+            <div class="guide-step-num" aria-hidden="true">2</div>
+            <span>Klik tombol di bawah — browser akan meminta izin kamera</span>
+        </div>
+        <div class="guide-step">
+            <div class="guide-step-num" aria-hidden="true">3</div>
+            <span>Arahkan kamera ke marker — model ikan akan muncul otomatis</span>
+        </div>
+        <div class="guide-step">
+            <div class="guide-step-num" aria-hidden="true">4</div>
+            <span>Tekan tombol <strong style="color:var(--cyan)">Change</strong> untuk mengganti model ikan ke variasi lain</span>
+        </div>
+    </div>
+
+    <button id="btn-start-ar" type="button">
+        <i class="fas fa-camera" aria-hidden="true"></i>
+        &nbsp; Aktifkan Kamera AR
+    </button>
+</div>
+</div>
+
+<!-- LOADING -->
+<div id="ar-loading" role="status" aria-live="polite">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Memuat AR Engine…</div>
+</div>
+
+<!-- CAMERA ERROR -->
+<div id="camera-error" role="alert" aria-live="assertive">
+    <div class="error-box">
+        <div class="error-icon" aria-hidden="true"><i class="fas fa-video-slash"></i></div>
+        <div class="error-title">Akses Kamera Ditolak</div>
+        <p class="error-msg">
+            Browser memerlukan izin kamera untuk menjalankan AR.
+            Izinkan akses kamera di pengaturan browser, lalu coba lagi.
+        </p>
+        <div class="error-actions">
+            <button class="btn-retry" id="btn-retry" type="button">
+                <i class="fas fa-rotate-right" aria-hidden="true"></i>
+                Coba Lagi
+            </button>
+            <a href="index.html" class="btn-back-home">
+                <i class="fas fa-arrow-left" aria-hidden="true"></i>
+                Kembali ke Beranda
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- AR OVERLAY -->
+<div id="ar-overlay">
+    <div id="ar-topbar">
+        <a href="index.html" class="ar-logo" aria-label="Aquaculture — Back to home">
+            <i class="fas fa-water" aria-hidden="true"></i>
+            AQUACULTURE
+        </a>
+        <div class="ar-badge" role="status" aria-label="AR Live">
+            <div class="live-dot" aria-hidden="true"></div>
+            AR LIVE
+        </div>
+        <a href="index.html" id="btn-back">
+            <i class="fas fa-arrow-left" aria-hidden="true"></i>
+            Kembali
+        </a>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div id="obj-toast" role="status" aria-live="polite" aria-atomic="true">
+    <div class="toast-title" id="toast-title"></div>
+    <div class="toast-sub"   id="toast-sub"></div>
+</div>
+
+<!-- SCAN FRAME -->
+<div id="scan-frame" aria-hidden="true">
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+    <div class="scan-line"></div>
+</div>
+
+<!-- ── TOGGLE FISH BUTTON ── -->
+<button id="btn-toggle-fish" type="button" aria-label="Ganti model ikan">
+    <i class="fas fa-fish-fins btn-icon" aria-hidden="true"></i>
+    <span id="toggle-label">Change</span>
+</button>
+
+<!-- HINT PANEL -->
+<div id="hint-panel">
+    <div id="hint-text">Arahkan kamera ke marker — objek akan muncul</div>
+    <div id="marker-strip" role="list">
+        <button class="marker-btn active" onclick="showGuide()" aria-label="Tampilkan panduan marker" role="listitem" type="button">
+            <i class="fas fa-question-circle" aria-hidden="true"></i>
+            Marker
+        </button>
+        <button class="marker-btn" id="btn-m3" role="listitem" type="button" aria-label="Koi Fish marker">
+            <i class="fas fa-fish-fins" aria-hidden="true"></i>
+            Koi Fish
+        </button>
+        <button class="marker-btn" id="btn-m4" role="listitem" type="button" aria-label="Tunafish marker">
+            <i class="fas fa-fish-fins" aria-hidden="true"></i>
+            Tuna Fish
+        </button>
+        <button class="marker-btn" id="btn-m5" role="listitem" type="button" aria-label="Guppyfish marker">
+            <i class="fas fa-fish-fins" aria-hidden="true"></i>
+            Guppy Fish
+        </button>
+    </div>
+</div>
+
+<!-- CONTROLS -->
+<div id="controls">
+    <button class="ctrl-btn" title="Panduan" onclick="showGuide()" type="button" aria-label="Buka panduan">
+        <i class="fas fa-book-open" aria-hidden="true"></i>
+    </button>
+    <button class="ctrl-btn" title="Zoom In" onclick="zoomModel(1.15)" type="button" aria-label="Zoom in">
+        <i class="fas fa-magnifying-glass-plus" aria-hidden="true"></i>
+    </button>
+    <button class="ctrl-btn" title="Zoom Out" onclick="zoomModel(0.87)" type="button" aria-label="Zoom out">
+        <i class="fas fa-magnifying-glass-minus" aria-hidden="true"></i>
+    </button>
+    <button class="ctrl-btn" title="Reset" onclick="resetModel()" type="button" aria-label="Reset posisi">
+        <i class="fas fa-arrows-rotate" aria-hidden="true"></i>
+    </button>
+</div>
+
+<script>
+    // ─────────────────────────────────────────────────────────────────────────
+    // MARKER CONFIG
+    //
+    // Setiap marker punya array `models` berisi 2 entry.
+    // Tombol Change akan toggle antara index 0 dan index 1.
+    //
+    // Untuk marker Koi     : model[0] = koi-fish.glb,   model[1] = goldfish.glb
+    // Untuk marker Tuna    : model[0] = koi-fish.glb,   model[1] = tuna-fish.glb
+    // Untuk marker Guppy   : model[0] = koi-fish.glb,   model[1] = guppy-fish.glb
+    //
+    // Ubah `modelUrl` sesuai file GLB yang tersedia.
+    // ─────────────────────────────────────────────────────────────────────────
+
+    const MARKERS = [
+        {
+            id:   'marker-koi',
+            type: 'pattern',
+            url:  'markers/Koi-Fish.patt',
+            models: [
+                {
+                    key:      'model-a',
+                    modelUrl: 'models/koi-fish.glb',
+                    position: '0 0 0',
+                    scale:    '0.6 0.6 0.6',
+                    rotation: '-90 0 0',
+                    info: { title: 'KOI FISH', sub: 'Cyprinus rubrofuscus — Ikan Hias Keberuntungan' }
+                },
+                {
+                    key:      'model-b',
+                    modelUrl: 'models/goldfish.glb',
+                    position: '0 0 0',
+                    scale:    '0.2 0.2 0.2',
+                    rotation: '0 90 -90',
+                    info: { title: 'GOLDFISH', sub: 'Carassius auratus — Ikan Mas Hias' }
+                }
+            ],
+            btnId: 'btn-m3'
+        },
+        {
+            id:   'marker-tunafish',
+            type: 'pattern',
+            url:  'markers/tuna-fish.patt',
+            models: [
+                {
+                    key:      'model-a',
+                    modelUrl: 'models/tuna-fish.glb',
+                    position: '0 0 0',
+                    scale:    '0.6 0.6 0.6',
+                    rotation: '0 90 -90',
+                    info: { title: 'TUNA FISH', sub: 'Thunnus — Ikan Laut Besar' }
+                },
+                {
+                    key:      'model-b',
+                    modelUrl: 'models/kerapu.glb',
+                    position: '0 0 0',
+                    scale:    '0.3 0.3 0.3',
+                    rotation: '0 90 -90',
+                    info: { title: 'KERAPU FISH', sub: 'Thunnus — Ikan Laut Besar' }
+                }
+            ],
+            btnId: 'btn-m4'
+        },
+        {
+            id:   'marker-guppyfish',
+            type: 'pattern',
+            url:  'markers/guppy-fish.patt',
+            models: [
+                {
+                    key:      'model-a',
+                    modelUrl: 'models/guppy-fish.glb',
+                    position: '0 0 0',
+                    scale:    '0.4 0.4 0.4',
+                    rotation: '0 90 -90',
+                    info: { title: 'GUPPY FISH', sub: 'Poecilia reticulata — Ikan Hias Air Tawar' }
+                },
+                {
+                    key:      'model-b',
+                    modelUrl: 'models/cupang.glb',
+                    position: '0 0 0',
+                    scale:    '0.4 0.4 0.4',
+                    rotation: '-90 0 0',
+                    info: { title: 'CUPANG FISH', sub: 'Poecilia reticulata — Ikan Hias Air Tawar' }
+                }
+            ],
+            btnId: 'btn-m5'
+        }
+    ];
+
+    // ── DOM REFS ──
+    const guideModal  = document.getElementById('guide-modal');
+    const arLoading   = document.getElementById('ar-loading');
+    const cameraError = document.getElementById('camera-error');
+    const btnStart    = document.getElementById('btn-start-ar');
+    const toast       = document.getElementById('obj-toast');
+    const toastTitle  = document.getElementById('toast-title');
+    const toastSub    = document.getElementById('toast-sub');
+    const hintText    = document.getElementById('hint-text');
+    const btnToggle   = document.getElementById('btn-toggle-fish');
+    const toggleLabel = document.getElementById('toggle-label');
+
+    // Map markerId → button element
+    const markerBtns = {};
+    MARKERS.forEach(m => { markerBtns[m.id] = document.getElementById(m.btnId); });
+
+    let toastTimeout;
+    let arStarted    = false;
+    let dragState    = null;
+    const modelState = {};
+
+    // Per-marker toggle state: which model index is currently shown (0 or 1)
+    const activeModelIdx = {};   // markerId → 0|1
+    MARKERS.forEach(m => { activeModelIdx[m.id] = 0; });
+
+    // Which marker is currently visible (found by camera)
+    let activeMarkerId = null;
+
+    // ── GUIDE ──
+    function showGuide() {
+        guideModal.classList.remove('hidden');
+        const firstFocus = guideModal.querySelector('button, a, input');
+        if (firstFocus) setTimeout(() => firstFocus.focus(), 50);
+    }
+    function closeGuide() {
+        if (arStarted) guideModal.classList.add('hidden');
+    }
+    document.getElementById('btn-close-guide').addEventListener('click', closeGuide);
+    guideModal.addEventListener('click', e => {
+        if (arStarted && e.target === guideModal) guideModal.classList.add('hidden');
+    });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && arStarted) guideModal.classList.add('hidden');
+    });
+
+    // ── TOAST ──
+    function showToast(title, sub) {
+        toastTitle.textContent = title;
+        toastSub.textContent   = sub;
+        toast.classList.add('show');
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+    function hideToast() { toast.classList.remove('show'); }
+
+    // ── TOGGLE BUTTON ──
+    function updateToggleButton() {
+        if (activeMarkerId) {
+            btnToggle.classList.add('visible');
+        } else {
+            btnToggle.classList.remove('visible');
+        }
+    }
+
+    function switchFishModel() {
+        if (!activeMarkerId) return;
+
+        const markerCfg = MARKERS.find(m => m.id === activeMarkerId);
+        if (!markerCfg) return;
+
+        const markerEl = document.getElementById(activeMarkerId);
+        if (!markerEl) return;
+
+        // Spin animation
+        btnToggle.classList.add('switching');
+        setTimeout(() => btnToggle.classList.remove('switching'), 400);
+
+        // Toggle index
+        const prevIdx = activeModelIdx[activeMarkerId];
+        const nextIdx = prevIdx === 0 ? 1 : 0;
+        activeModelIdx[activeMarkerId] = nextIdx;
+
+        // Show / hide entities
+        markerEl.querySelectorAll('[data-model-key]').forEach(entity => {
+            const key = entity.getAttribute('data-model-key');
+            entity.setAttribute('visible', key === markerCfg.models[nextIdx].key ? 'true' : 'false');
+        });
+
+        // Toast
+        const info = markerCfg.models[nextIdx].info;
+        showToast(info.title, info.sub);
+
+        // Reset zoom/rotate state
+        modelState[activeMarkerId] = { scale: 1, rotX: 0, rotY: 0 };
+    }
+
+    btnToggle.addEventListener('click', switchFishModel);
+
+    // ── BUILD A-SCENE ──
+    function buildAndInjectScene() {
+        if (document.getElementById('ar-scene')) return;
+
+        const scene = document.createElement('a-scene');
+        scene.id = 'ar-scene';
+        scene.setAttribute('arjs', 'sourceType:webcam; debugUIEnabled:false; detectionMode:mono_and_matrix; matrixCodeType:3x3;');
+        scene.setAttribute('renderer', 'antialias:true; alpha:true; logarithmicDepthBuffer:true;');
+        scene.setAttribute('vr-mode-ui', 'enabled:false');
+        scene.setAttribute('loading-screen', 'enabled:false');
+
+        scene.innerHTML = `
+            <a-light type="ambient"     color="#ffffff" intensity="1.0"></a-light>
+            <a-light type="directional" position="1 2 1"   color="#ffffff" intensity="0.8"></a-light>
+            <a-light type="directional" position="-1 1 -1" color="#f0f0f0" intensity="0.4"></a-light>
+        `;
+
+        MARKERS.forEach(markerCfg => {
+            const markerEl = document.createElement('a-marker');
+            markerEl.id = markerCfg.id;
+            markerEl.setAttribute('type', 'pattern');
+            markerEl.setAttribute('url', markerCfg.url);
+
+            // Build both model entities
+            markerCfg.models.forEach((m, idx) => {
+                const entity = document.createElement('a-entity');
+                entity.setAttribute('gltf-model',       `url(${m.modelUrl})`);
+                entity.setAttribute('position',         m.position);
+                entity.setAttribute('scale',            m.scale);
+                entity.setAttribute('rotation',         m.rotation);
+                entity.setAttribute('animation-mixer',  'clip: *; loop: repeat; crossFadeDuration: 0.3');
+                entity.setAttribute('data-model-key',   m.key);
+                // Only model[0] visible at start
+                entity.setAttribute('visible', idx === 0 ? 'true' : 'false');
+                markerEl.appendChild(entity);
+            });
+
+            // Marker Found
+            markerEl.addEventListener('markerFound', () => {
+                activeMarkerId = markerCfg.id;
+                updateToggleButton();
+
+                const currentIdx  = activeModelIdx[markerCfg.id];
+                const info        = markerCfg.models[currentIdx].info;
+                showToast(info.title, info.sub);
+
+                hintText.textContent = 'Objek terdeteksi — tekan tombol change untuk ganti model';
+                hintText.classList.add('found');
+                Object.values(markerBtns).forEach(b => b && b.classList.remove('active'));
+                if (markerBtns[markerCfg.id]) markerBtns[markerCfg.id].classList.add('active');
+            });
+
+            // Marker Lost
+            markerEl.addEventListener('markerLost', () => {
+                if (activeMarkerId === markerCfg.id) activeMarkerId = null;
+                updateToggleButton();
+                hideToast();
+                hintText.textContent = 'Arahkan kamera ke marker — objek akan muncul';
+                hintText.classList.remove('found');
+                Object.values(markerBtns).forEach(b => b && b.classList.remove('active'));
+            });
+
+            scene.appendChild(markerEl);
+        });
+
+        const cam = document.createElement('a-entity');
+        cam.setAttribute('camera', '');
+        scene.appendChild(cam);
+
+        document.body.insertBefore(scene, document.body.firstChild);
+    }
+
+    // ── LOAD SCRIPTS ──
+    function loadScript(src) {
+        return new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = src;
+            s.onload  = resolve;
+            s.onerror = reject;
+            document.head.appendChild(s);
+        });
+    }
+
+    async function startAR() {
+        if (arStarted) { guideModal.classList.add('hidden'); return; }
+
+        if (!navigator.mediaDevices?.getUserMedia) {
+            cameraError.classList.add('show');
+            guideModal.classList.add('hidden');
+            return;
+        }
+
+        try {
+            await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        } catch {
+            guideModal.classList.add('hidden');
+            cameraError.classList.add('show');
+            return;
+        }
+
+        guideModal.classList.add('hidden');
+
+        try { await document.documentElement.requestFullscreen(); } catch (_) {}
+
+        arLoading.classList.add('show');
+        btnStart.disabled = true;
+
+        try {
+            await loadScript('https://aframe.io/releases/1.4.2/aframe.min.js');
+            await loadScript('https://cdn.jsdelivr.net/npm/@ar-js-org/ar.js@3.4.5/aframe/build/aframe-ar.js');
+            await loadScript('https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js');
+
+            arStarted = true;
+            guideModal.classList.add('closeable');
+            arLoading.classList.remove('show');
+            buildAndInjectScene();
+
+        } catch (err) {
+            console.error('Gagal load AR scripts:', err);
+            arLoading.classList.remove('show');
+            if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+            cameraError.classList.add('show');
+            btnStart.disabled = false;
+        }
+    }
+
+    btnStart.addEventListener('click', startAR);
+    document.getElementById('btn-retry')?.addEventListener('click', () => {
+        cameraError.classList.remove('show');
+        btnStart.disabled = false;
+        showGuide();
+    });
+
+    // ── ZOOM & ROTATE ──
+    function getActiveEntity() {
+        if (!activeMarkerId) return null;
+        const markerCfg = MARKERS.find(m => m.id === activeMarkerId);
+        if (!markerCfg) return null;
+        const markerEl = document.getElementById(activeMarkerId);
+        if (!markerEl || !markerEl.object3D?.visible) return null;
+
+        const currentIdx = activeModelIdx[activeMarkerId];
+        const modelDef   = markerCfg.models[currentIdx];
+        const entity     = markerEl.querySelector(`[data-model-key="${modelDef.key}"]`);
+        if (!entity) return null;
+        return { entity, id: activeMarkerId, defaultRotation: modelDef.rotation, scale: modelDef.scale };
+    }
+
+    function zoomModel(factor) {
+        const active = getActiveEntity();
+        if (!active) return;
+        const { entity, id, scale } = active;
+        if (!modelState[id]) modelState[id] = { scale: 1, rotX: 0, rotY: 0 };
+        modelState[id].scale = Math.min(Math.max(modelState[id].scale * factor, 0.1), 5);
+        const base = scale.split(' ').map(Number);
+        const s = modelState[id].scale;
+        entity.setAttribute('scale', `${base[0]*s} ${base[1]*s} ${base[2]*s}`);
+    }
+
+    function resetModel() {
+        const active = getActiveEntity();
+        if (!active) return;
+        const { entity, id, defaultRotation, scale } = active;
+        modelState[id] = { scale: 1, rotX: 0, rotY: 0 };
+        entity.setAttribute('scale', scale);
+        entity.setAttribute('rotation', defaultRotation);
+    }
+
+    function onDragStart(x, y) {
+        const active = getActiveEntity();
+        if (!active) return;
+        const { id } = active;
+        if (!modelState[id]) modelState[id] = { scale: 1, rotX: 0, rotY: 0 };
+        dragState = { startX: x, startY: y, id,
+            baseRotX: modelState[id].rotX, baseRotY: modelState[id].rotY };
+    }
+
+    function onDragMove(x, y) {
+        if (!dragState) return;
+        const { id } = dragState;
+        const active = getActiveEntity();
+        if (!active) return;
+        const { entity, defaultRotation } = active;
+        const dx = x - dragState.startX;
+        const dy = y - dragState.startY;
+        modelState[id].rotY = dragState.baseRotY + dx * 0.4;
+        modelState[id].rotX = dragState.baseRotX + dy * 0.4;
+        const defRot = defaultRotation.split(' ').map(Number);
+        entity.setAttribute('rotation',
+            `${defRot[0] + modelState[id].rotX} ${defRot[1] + modelState[id].rotY} ${defRot[2]}`);
+    }
+
+    function onDragEnd() { dragState = null; }
+
+    document.addEventListener('mousedown',  e => onDragStart(e.clientX, e.clientY));
+    document.addEventListener('mousemove',  e => onDragMove(e.clientX, e.clientY));
+    document.addEventListener('mouseup',    onDragEnd);
+
+    document.addEventListener('touchstart', e => {
+        if (e.touches.length === 1) onDragStart(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: true });
+
+    document.addEventListener('touchmove', e => {
+        if (e.touches.length === 1) {
+            onDragMove(e.touches[0].clientX, e.touches[0].clientY);
+        }
+        if (e.touches.length === 2) {
+            const dist = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+            if (dragState && dragState.pinchStart) {
+                zoomModel(dist > dragState.pinchStart ? 1.04 : 0.96);
+                dragState.pinchStart = dist;
+            } else {
+                if (!dragState) dragState = {};
+                dragState.pinchStart = dist;
+            }
+        }
+    }, { passive: true });
+
+    document.addEventListener('touchend', onDragEnd);
+
+    document.addEventListener('wheel', e => {
+        e.preventDefault();
+        zoomModel(e.deltaY < 0 ? 1.08 : 0.93);
+    }, { passive: false });
+</script>
+</body>
+</html>

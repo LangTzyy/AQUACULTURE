@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Augmented Reality Aquaculture — Dive into the unknown depths of the ocean." />
+    <title>AQUACULTURE</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;500;600;700;800;900&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <!-- Custom cursor — hidden on touch devices via CSS -->
+    <div id="cursor-ring" aria-hidden="true"></div>
+    <div id="cursor-dot" aria-hidden="true"></div>
+
+    <!-- Grain -->
+    <div class="grain" aria-hidden="true"></div>
+
+    <!-- Scanlines -->
+    <div class="scanlines" aria-hidden="true"></div>
+
+    <!-- Ambient -->
+    <div class="ambient" aria-hidden="true">
+        <div class="ambient-orb orb-a"></div>
+        <div class="ambient-orb orb-b"></div>
+        <div class="ambient-orb orb-c"></div>
+        <div class="ambient-orb orb-d"></div>
+    </div>
+
+    <!-- Top line -->
+    <div class="top-line" aria-hidden="true"></div>
+
+    <!-- Particles -->
+    <div class="particles" id="particles" aria-hidden="true"></div>
+
+    <!-- Flicker -->
+    <div class="flicker-overlay" id="flickerOverlay" aria-hidden="true"></div>
+
+    <!-- SKIP LINK for accessibility -->
+    <a href="#home" class="skip-link">Skip to main content</a>
+
+    <!-- NAV -->
+    <nav id="nav" role="navigation" aria-label="Main navigation">
+        <a href="#home" class="logo" aria-label="Aquaculture — Home">
+            <i class="fas fa-water" aria-hidden="true"></i>
+            AQUACULTURE
+        </a>
+        <ul class="nav-menu" role="list">
+            <li><a href="#home" class="active">Home</a></li>
+            <li><a href="#mysteries">Mysteries</a></li>
+            <li><a href="#depth">Depth</a></li>
+            <li><a href="#lore">Dark Lore</a></li>
+            <li><a href="#about">About</a></li>
+        </ul>
+        <button class="hamburger" id="hamburger" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobileNav">
+            <i class="fas fa-bars" aria-hidden="true"></i>
+        </button>
+    </nav>
+
+    <!-- Mobile nav overlay backdrop -->
+    <div class="mobile-nav-backdrop" id="mobileNavBackdrop" aria-hidden="true"></div>
+
+    <div class="mobile-nav" id="mobileNav" role="dialog" aria-label="Mobile navigation" aria-modal="true" hidden>
+        <div class="mobile-nav-header">
+            <span class="mobile-nav-title">Navigation</span>
+            <button class="mobile-nav-close" id="mobileNavClose" aria-label="Close navigation menu">
+                <i class="fas fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+        <nav aria-label="Mobile menu">
+            <a href="#home" class="active">Home</a>
+            <a href="#mysteries">Mysteries</a>
+            <a href="#depth">Depth</a>
+            <a href="#lore">Dark Lore</a>
+            <a href="#about">About</a>
+        </nav>
+        <a href="AR.html" class="mobile-nav-ar-btn">
+            <i class="fas fa-camera" aria-hidden="true"></i>
+            Experience AR
+        </a>
+    </div>
+
+    <!-- HERO -->
+    <main id="main-content">
+    <section class="hero section--base" id="home" aria-label="Hero section">
+        <div class="depth-rays" aria-hidden="true"></div>
+        <div class="hero-vignette" aria-hidden="true"></div>
+        <div class="hero-bg-symbol" aria-hidden="true">⚓</div>
+        <div class="hero-inner">
+            <div class="hero-tag" role="status">
+                <span class="pulse-dot" aria-hidden="true"></span>
+                WARNING — DEPTH EXCEEDS SAFE LIMITS
+            </div>
+            <h1 class="hero-heading">
+                <span class="accent">AUGMENTED REALITY</span>
+                <span class="accent">AQUACULTURE</span>
+            </h1>
+            <p class="hero-desc" id="typewriter" aria-live="polite"><span class="caret" aria-hidden="true"></span></p>
+            <div class="hero-btns">
+                <a href="#mysteries" class="btn-primary">
+                    Do Not Descend
+                    <i class="fas fa-arrow-down" aria-hidden="true"></i>
+                </a>
+                <a href="AR.html" class="btn-ghost btn-ar">
+                    <i class="fas fa-camera" aria-hidden="true"></i>
+                    Experience AR
+                </a>
+            </div>
+        </div>
+        <div class="scroll-hint" aria-hidden="true">
+            <span>Sink</span>
+            <div class="line"></div>
+        </div>
+    </section>
+
+    <div class="section-divider" role="separator"></div>
+
+    <!-- MYSTERIES -->
+    <section class="section section--alt" id="mysteries" aria-label="Mysteries section">
+        <div class="section-head">
+            <div class="label reveal">What Lurks Below</div>
+            <h2 class="heading reveal d1">The Three Sunken Chambers</h2>
+            <p class="subheading reveal d2">
+                Each door descends deeper into the AQUACULTURE. Not all who enter find their
+                way back to the surface.
+            </p>
+        </div>
+        <div class="mysteries-grid">
+            <article class="card reveal d3">
+                <div class="spotlight" aria-hidden="true"></div>
+                <span class="card-roman" aria-hidden="true">I</span>
+                <div class="card-icon" aria-hidden="true"><i class="fas fa-eye"></i></div>
+                <h3 class="card-title">The Watching Deep</h3>
+                <p class="card-body">
+                    Sonar readings show movement in the caverns below — patterns too
+                    deliberate to be current, too large to be fish. Something down there
+                    knows you're here.
+                </p>
+            </article>
+            <article class="card reveal d4">
+                <div class="spotlight" aria-hidden="true"></div>
+                <span class="card-roman" aria-hidden="true">II</span>
+                <div class="card-icon" aria-hidden="true"><i class="fas fa-water"></i></div>
+                <h3 class="card-title">The Whispering Current</h3>
+                <p class="card-body">
+                    Divers report hearing voices carried by the deep ocean currents —
+                    words in no known language, growing clearer the deeper you go, then
+                    stopping. Silence is worse.
+                </p>
+            </article>
+            <article class="card reveal d5">
+                <div class="spotlight" aria-hidden="true"></div>
+                <span class="card-roman" aria-hidden="true">III</span>
+                <div class="card-icon" aria-hidden="true"><i class="fas fa-door-open"></i></div>
+                <h3 class="card-title">The Final Depth</h3>
+                <p class="card-body">
+                    No submarine has returned from the deepest chamber. The last
+                    transmission was a single word, repeated: "Opening." The door was
+                    already open when they arrived.
+                </p>
+            </article>
+        </div>
+    </section>
+
+    <div class="section-divider" role="separator"></div>
+
+    <!-- DEPTH METER -->
+    <section class="depth-meter-section" id="depth" aria-label="Threat level readings">
+        <div class="section-head" style="margin-bottom: 52px">
+            <div class="label reveal">Signal Readings</div>
+            <h2 class="heading reveal d1">Known Threat Levels</h2>
+            <p class="subheading reveal d2">
+                Last updated before DSV contact was lost.
+            </p>
+        </div>
+        <div class="depth-meter-inner">
+            <div class="depth-bar-item reveal">
+                <span class="depth-bar-label">Sonar Activity</span>
+                <div class="depth-bar-track" role="progressbar" aria-valuenow="92" aria-valuemin="0" aria-valuemax="100" aria-label="Sonar Activity: 92%">
+                    <div class="depth-bar-fill" style="--fill-w: 92%"></div>
+                </div>
+                <span class="depth-bar-val" aria-hidden="true">92%</span>
+            </div>
+            <div class="depth-bar-item reveal d1">
+                <span class="depth-bar-label">Entity Presence</span>
+                <div class="depth-bar-track" role="progressbar" aria-valuenow="78" aria-valuemin="0" aria-valuemax="100" aria-label="Entity Presence: 78%">
+                    <div class="depth-bar-fill" style="--fill-w: 78%"></div>
+                </div>
+                <span class="depth-bar-val" aria-hidden="true">78%</span>
+            </div>
+            <div class="depth-bar-item reveal d2">
+                <span class="depth-bar-label">Signal Distortion</span>
+                <div class="depth-bar-track" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" aria-label="Signal Distortion: Maximum">
+                    <div class="depth-bar-fill" style="--fill-w: 100%"></div>
+                </div>
+                <span class="depth-bar-val" aria-hidden="true">∞</span>
+            </div>
+            <div class="depth-bar-item reveal d3">
+                <span class="depth-bar-label">Crew Cognitive Loss</span>
+                <div class="depth-bar-track" role="progressbar" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100" aria-label="Crew Cognitive Loss: 65%">
+                    <div class="depth-bar-fill" style="--fill-w: 65%"></div>
+                </div>
+                <span class="depth-bar-val" aria-hidden="true">65%</span>
+            </div>
+            <div class="depth-bar-item reveal d4">
+                <span class="depth-bar-label">Hull Integrity</span>
+                <div class="depth-bar-track" role="progressbar" aria-valuenow="14" aria-valuemin="0" aria-valuemax="100" aria-label="Hull Integrity: 14%">
+                    <div class="depth-bar-fill" style="--fill-w: 14%"></div>
+                </div>
+                <span class="depth-bar-val" aria-hidden="true">14%</span>
+            </div>
+        </div>
+    </section>
+
+    <div class="section-divider" role="separator"></div>
+
+    <!-- LORE -->
+    <section class="section section--dark" id="lore" aria-label="Dark lore archives">
+        <div class="section-head">
+            <div class="label reveal">Archives Of The Drowned</div>
+            <h2 class="heading reveal d1">Fragments From Below</h2>
+            <p class="subheading reveal d2">
+                Numbers scratched into the hull by those who descended before.
+            </p>
+        </div>
+        <div class="lore-grid">
+            <article class="card lore-card reveal d3">
+                <div class="spotlight" aria-hidden="true"></div>
+                <div class="lore-icon" aria-hidden="true"><i class="fas fa-skull-crossbones"></i></div>
+                <div class="lore-num">847</div>
+                <p class="lore-text">vessels lost in the uncharted deep</p>
+            </article>
+            <article class="card lore-card reveal d4">
+                <div class="spotlight" aria-hidden="true"></div>
+                <div class="lore-icon" aria-hidden="true"><i class="fas fa-moon"></i></div>
+                <div class="lore-num">11km</div>
+                <p class="lore-text">depth where all signals cease to exist</p>
+            </article>
+            <article class="card lore-card reveal d5">
+                <div class="spotlight" aria-hidden="true"></div>
+                <div class="lore-icon" aria-hidden="true"><i class="fas fa-book-skull"></i></div>
+                <div class="lore-num">3</div>
+                <p class="lore-text">sunken logs recovered — all unreadable</p>
+            </article>
+            <article class="card lore-card reveal d6">
+                <div class="spotlight" aria-hidden="true"></div>
+                <div class="lore-icon" aria-hidden="true"><i class="fas fa-hourglass-half"></i></div>
+                <div class="lore-num">∞</div>
+                <p class="lore-text">pressure crushes time itself at the bottom</p>
+            </article>
+        </div>
+    </section>
+
+    <div class="section-divider" role="separator"></div>
+
+    <!-- QUOTE -->
+    <section class="section section--base quote-section" aria-label="Quote">
+        <div class="quote-line reveal" aria-hidden="true"></div>
+        <blockquote>
+            <p class="quote-text reveal d1">
+                "The ocean does not forget what falls into it. It keeps everything —
+                every ship, every soul, every secret — locked in the dark, where light
+                has never been."
+            </p>
+            <footer>
+                <cite class="quote-attr reveal d2">— Unknown, last transmission from the depths of the ocean-7</cite>
+                <span class="quote-attr reveal d3" aria-label="Informatics Engineering, Institut Teknologi dan Bisnis Asia Malang">
+                    Informatics Engineering · ITB Asia Malang
+                </span>
+            </footer>
+        </blockquote>
+    </section>
+
+    <div class="section-divider" role="separator"></div>
+
+    <!-- ABOUT -->
+    <section class="section section--alt" id="about" aria-label="About this project">
+        <div class="section-head">
+            <div class="label reveal">The Project</div>
+            <h2 class="heading reveal d1">About The AQUACULTURE</h2>
+            <p class="subheading reveal d2">
+                An AR-powered web experience built to explore the mysteries of deep sea aquaculture.
+            </p>
+        </div>
+        <div class="about-grid">
+            <article class="card about-card reveal d3">
+                <div class="spotlight" aria-hidden="true"></div>
+                <div class="card-icon" aria-hidden="true"><i class="fas fa-graduation-cap"></i></div>
+                <h3 class="card-title">Academic Project</h3>
+                <p class="card-body">
+                    Developed by Informatics Engineering students at Institut Teknologi &amp; Bisnis Asia Malang as an exploration of Augmented Reality in marine science education.
+                </p>
+            </article>
+            <article class="card about-card reveal d4">
+                <div class="spotlight" aria-hidden="true"></div>
+                <div class="card-icon" aria-hidden="true"><i class="fas fa-cube"></i></div>
+                <h3 class="card-title">AR Technology</h3>
+                <p class="card-body">
+                    Powered by A-Frame and AR.js, the experience brings deep-sea creatures to life through marker-based augmented reality — no app download required.
+                </p>
+            </article>
+            <article class="card about-card reveal d5">
+                <div class="spotlight" aria-hidden="true"></div>
+                <div class="card-icon" aria-hidden="true"><i class="fas fa-camera"></i></div>
+                <h3 class="card-title">Try It Now</h3>
+                <p class="card-body">
+                    Point your camera at the provided markers to summon 3D creatures from the AQUACULTURE — a giant octopus, an AQUACULTURE fish, and a sunken anchor.
+                </p>
+                <a href="AR.html" class="btn-primary about-cta">
+                    Launch AR
+                    <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                </a>
+            </article>
+        </div>
+    </section>
+
+    </main><!-- /main -->
+
+    <!-- FOOTER -->
+    <footer class="site-footer" role="contentinfo">
+        <div class="footer-inner">
+            <a href="#home" class="footer-logo" aria-label="Back to top">
+                <i class="fas fa-water" aria-hidden="true"></i>
+                AQUACULTURE
+            </a>
+            <p class="footer-copy">
+                Informatics Engineering · Institut Teknologi &amp; Bisnis Asia Malang
+            </p>
+            <a href="#home" class="footer-back-top" aria-label="Scroll back to top">
+                <i class="fas fa-arrow-up" aria-hidden="true"></i>
+            </a>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
